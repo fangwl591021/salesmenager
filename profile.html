@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html class="light" lang="zh-TW">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+  <title>會員設定</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script id="tailwind-config">
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#2563eb", 
+            background: "#f3f4f6",
+            "text-main": "#0f172a",
+          },
+          fontFamily: {
+            headline: ["Manrope", "Noto Sans TC", "sans-serif"],
+            sans: ["Inter", "Noto Sans TC", "sans-serif"],
+          }
+        },
+      },
+    };
+  </script>
+  
+  <style type="text/tailwindcss">
+    body { background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* 原生列表風格輸入框 */
+    .list-input-group { @apply bg-white border-y border-gray-200 mt-6; }
+    .list-item { @apply flex flex-col px-4 py-3 border-b border-gray-100 last:border-b-0; }
+    .list-label { @apply text-[12px] text-gray-500 font-bold mb-1; }
+    .list-input { @apply w-full text-[15px] font-medium text-gray-800 outline-none bg-transparent placeholder-gray-300 p-0 border-none focus:ring-0; }
+    .list-textarea { @apply w-full text-[15px] font-medium text-gray-800 outline-none bg-transparent placeholder-gray-300 p-0 border-none focus:ring-0 resize-none leading-relaxed; }
+
+    .nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-400 h-full; min-width: 48px; }
+    .nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
+    .nav-active { @apply text-blue-600 font-bold; }
+    .nav-active .icon-box { @apply bg-blue-50 text-blue-600; }
+
+    .admin-nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-400 h-full; min-width: 48px; }
+    .admin-nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
+    .admin-nav-btn.admin-nav-active { @apply text-white font-bold; }
+    .admin-nav-btn.admin-nav-active .icon-box { @apply bg-gray-700 text-[#06C755]; }
+  </style>
+</head>
+<body class="font-sans text-text-main min-h-screen flex flex-col items-center bg-gray-100">
+
+<div class="w-full max-w-md bg-background h-screen relative flex flex-col shadow-2xl overflow-hidden">
+  
+  <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur-xl px-5 py-4 flex justify-between items-center border-b border-gray-200 shadow-sm">
+    <div class="text-[19px] font-extrabold text-gray-800 tracking-tight flex items-center gap-2">
+      <i data-lucide="user-circle" class="w-6 h-6 text-gray-500"></i> 個人專區
+    </div>
+    <button onclick="saveProfile()" id="btn-save" class="text-[15px] font-bold text-blue-600 active:scale-95 transition-transform hidden">
+      儲存
+    </button>
+  </nav>
+
+  <main class="flex-1 overflow-y-auto pb-28 pt-20">
+    <div id="view-loading" class="h-64 flex flex-col items-center justify-center space-y-4">
+      <i data-lucide="loader-2" class="w-8 h-8 text-blue-500 animate-spin"></i>
+    </div>
+
+    <div id="view-profile" class="hidden animate-in fade-in">
+      
+      <!-- 頭像與基本狀態區 -->
+      <div class="bg-white px-5 py-6 flex items-center gap-4 border-b border-gray-200 shadow-sm">
+        <img id="profile-img" src="" class="w-16 h-16 rounded-full object-cover border border-gray-100 shadow-sm">
+        <div class="flex-1">
+          <h2 class="text-[20px] font-black text-gray-800" id="display-name">載入中...</h2>
+          <div class="flex items-center gap-2 mt-1">
+            <span id="role-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-600">會員</span>
+            <span id="status-badge" class="px-2 py-0.5 rounded text-[11px] font-bold hidden"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 資料編輯區 (原生列表風格) -->
+      <div class="list-input-group shadow-sm">
+        <div class="list-item">
+          <label class="list-label">真實姓名</label>
+          <input type="text" id="f-name" class="list-input" placeholder="請輸入姓名">
+        </div>
+        <div class="list-item">
+          <label class="list-label">手機號碼</label>
+          <input type="tel" id="f-phone" class="list-input" placeholder="09xx...">
+        </div>
+        <div class="list-item">
+          <label class="list-label">產業類別</label>
+          <input type="text" id="f-industry" class="list-input" placeholder="如：資訊、服務業...">
+        </div>
+      </div>
+
+      <div class="px-4 mt-2 mb-1">
+        <p class="text-[12px] text-gray-500 font-medium">基本資訊將用於活動報名與系統顯示。</p>
+      </div>
+
+      <!-- 社群網址區 -->
+      <div class="list-input-group shadow-sm">
+        <div class="list-item">
+          <label class="list-label flex justify-between">
+            <span>社群網址 (可填多筆)</span>
+            <i data-lucide="link" class="w-4 h-4 text-gray-400"></i>
+          </label>
+          <textarea id="f-social" class="list-textarea h-28 mt-1" placeholder="請貼上您的 Facebook、Instagram 或個人網站連結 (每行一個)"></textarea>
+        </div>
+      </div>
+
+      <div class="px-4 mt-2 mb-8">
+        <p class="text-[12px] text-gray-500 font-medium">這些連結未來可授權提供給媒合對象或自動匯入數位名片中。</p>
+      </div>
+      
+    </div>
+  </main>
+
+  <!-- 導航列：一般用戶 -->
+  <nav id="bottom-nav-user" class="hidden fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-100">
+      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="compass" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">探索</span></button>
+      <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="receipt" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">紀錄</span></button>
+      <button onclick="window.location.href='profile.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="user" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">設定</span></button>
+  </nav>
+
+  <!-- 導航列：管理員 -->
+  <nav id="bottom-nav-admin" class="hidden fixed bottom-0 w-full max-w-md bg-gray-900/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.2)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-800">
+      <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">主頁</span></button>
+      <button onclick="window.location.href='admin-sales.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">店家</span></button>
+      <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
+      <button onclick="window.location.href='fate.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+      <button onclick="window.location.href='card.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
+      <button onclick="window.location.href='profile.html'" class="admin-nav-btn admin-nav-active"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
+  </nav>
+</div>
+
+<div id="toast" class="hidden fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all z-[10000] font-bold flex items-center gap-2 w-max max-w-[90vw] opacity-0 pointer-events-none border border-gray-700"></div>
+
+<script>
+  const LIFF_ID = "2008924519-RslRiLoO"; 
+  const WORKER_URL = "https://salesmemager.fangwl591021.workers.dev/"; 
+  
+  let liffProfile = null;
+  let isProcessing = false;
+
+  lucide.createIcons();
+
+  window.showToast = function(msg, isError = false) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    const iconName = isError ? 'alert-circle' : 'check-circle-2';
+    t.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4"></i> ${msg}`;
+    t.className = `fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all font-bold flex items-center gap-2 w-max max-w-[90vw] ${isError ? 'bg-red-500 text-white border-red-600' : 'bg-gray-800 text-white border-gray-700'} opacity-100 z-[10000]`;
+    t.classList.remove('hidden');
+    lucide.createIcons({ root: t });
+    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, -1rem)'; setTimeout(() => t.classList.add('hidden'), 300); }, 3000); 
+  };
+
+  async function fetchAPI(action, payload = {}) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const response = await fetch(WORKER_URL, {
+      method: 'POST', 
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action, payload }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    const resText = await response.text();
+    let result = JSON.parse(resText);
+    if (!result.success) throw new Error(result.error);
+    return result.data;
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { 
+        liff.login({ redirectUri: window.location.href }); 
+        return; 
+      }
+      
+      liffProfile = await liff.getProfile();
+      document.getElementById('profile-img').src = liffProfile.pictureUrl || '';
+
+      const userRes = await fetchAPI('checkUser', { userId: liffProfile.userId });
+      if (!userRes.isRegistered) {
+         window.location.replace('register.html');
+         return;
+      }
+
+      const info = userRes.info;
+      document.getElementById('display-name').innerText = info['姓名'] || liffProfile.displayName;
+      
+      // 填入表單
+      document.getElementById('f-name').value = info['姓名'] || '';
+      document.getElementById('f-phone').value = info['電話'] || '';
+      document.getElementById('f-industry').value = info['業種'] || '';
+      document.getElementById('f-social').value = info['社群帳號'] || '';
+
+      // 權限徽章
+      const role = info['角色'];
+      const status = info['審核狀態'];
+      const roleBadge = document.getElementById('role-badge');
+      const statusBadge = document.getElementById('status-badge');
+
+      if (role === 'admin') {
+          roleBadge.textContent = "系統管理員";
+          roleBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-gray-800 text-white";
+          document.getElementById('bottom-nav-admin').classList.remove('hidden');
+      } else {
+          document.getElementById('bottom-nav-user').classList.remove('hidden');
+          if (role === 'sales') {
+              roleBadge.textContent = "合作店家";
+              roleBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-700";
+              statusBadge.classList.remove('hidden');
+              statusBadge.textContent = status;
+              statusBadge.className = status === '已開通' 
+                  ? "px-2 py-0.5 rounded text-[11px] font-bold bg-green-100 text-green-700"
+                  : "px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-700";
+          }
+      }
+
+      // 監聽輸入框變更以顯示儲存按鈕
+      const inputs = document.querySelectorAll('.list-input, .list-textarea');
+      inputs.forEach(input => {
+          input.addEventListener('input', () => {
+              document.getElementById('btn-save').classList.remove('hidden');
+          });
+      });
+
+      document.getElementById('view-loading').classList.add('hidden');
+      document.getElementById('view-profile').classList.remove('hidden');
+      
+    } catch (err) {
+      showToast("初始化失敗：" + err.message, true);
+    }
+  });
+
+  async function saveProfile() {
+    if (isProcessing) return;
+    
+    const name = document.getElementById('f-name').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    const industry = document.getElementById('f-industry').value.trim();
+    const social = document.getElementById('f-social').value.trim();
+
+    if (!name) return showToast("請輸入真實姓名", true);
+
+    const btn = document.getElementById('btn-save');
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+    lucide.createIcons({ root: btn });
+    btn.classList.add('pointer-events-none', 'opacity-50');
+    isProcessing = true;
+
+    try {
+      await fetchAPI('updateUserProfile', {
+        userId: liffProfile.userId,
+        name: name,
+        phone: phone,
+        industry: industry,
+        social: social
+      });
+      
+      document.getElementById('display-name').innerText = name;
+      showToast("✅ 個人資料已儲存");
+      btn.classList.add('hidden');
+      btn.innerText = '儲存';
+
+    } catch (err) {
+      showToast("儲存失敗：" + err.message, true);
+      btn.innerText = '儲存';
+    } finally {
+      btn.classList.remove('pointer-events-none', 'opacity-50');
+      isProcessing = false;
+    }
+  }
+</script>
+</body>
+</html>
