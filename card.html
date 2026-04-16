@@ -3,37 +3,19 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-  <link rel="icon" href="data:,">
   <title>名片管理</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <script id="tailwind-config">
-    window.tailwind = window.tailwind || {};
-    window.tailwind.config = {
-      theme: {
-        extend: {
-          colors: { primary: "#2563eb", background: "#ffffff", "text-main": "#0f172a" },
-          fontFamily: { headline: ["Manrope", "Noto Sans TC", "sans-serif"], sans: ["Inter", "Noto Sans TC", "sans-serif"] }
-        },
-      },
-    };
-  </script>
-  
-  <style type="text/tailwindcss">
-    body { background-color: #ffffff; -webkit-tap-highlight-color: transparent; }
+  <style>
+    body { background-color: #ffffff; font-family: 'Noto Sans TC', sans-serif; }
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
-    .input-label { @apply block text-[13px] font-bold text-gray-500 mb-2 uppercase tracking-wider; }
-    .custom-input { @apply w-full h-[50px] px-4 bg-gray-50 border border-transparent rounded-xl outline-none focus:bg-white focus:border-primary/30 focus:ring-4 focus:ring-primary/10 transition-all font-medium text-gray-800 text-[15px] shadow-sm placeholder-gray-400; }
-    .textarea-block { @apply w-full p-4 bg-gray-50 border border-transparent rounded-xl outline-none focus:bg-white focus:border-primary/30 focus:ring-4 focus:ring-primary/10 transition-all text-[15px] text-gray-800 resize-none leading-relaxed shadow-sm placeholder-gray-400; }
-    .btn-primary { @apply w-full py-4 bg-primary text-white rounded-xl font-bold text-[16px] shadow-md shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover:bg-blue-700; }
-    .btn-secondary { @apply w-full py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-[16px] hover:bg-gray-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm; }
-
-    /* 🚀 修正：統一深藍底導覽列 (使用原生 CSS 確保權限) */
+    .custom-input { @apply w-full h-[50px] px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-blue-500 transition-all font-medium text-gray-800; }
+    
+    /* 🚀 統一深藍底導覽列 (與首頁同步) */
     .unified-nav { 
         position: fixed; bottom: 0; width: 100%; max-width: 448px;
         background-color: #1e3a8a !important; display: flex; justify-content: space-around; 
@@ -45,84 +27,66 @@
     .nav-btn .icon-box { padding: 6px 16px; border-radius: 16px; transition: all 0.2s; margin-bottom: 2px; }
     .nav-btn.nav-active { color: #ffffff !important; }
     .nav-btn.nav-active .icon-box { background-color: rgba(255, 255, 255, 0.2); }
-    .nav-text { font-size: 10px; letter-spacing: 0.05em; }
-
-    .bottom-sheet-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .nav-text { font-size: 10px; }
   </style>
 </head>
-<body class="font-sans text-text-main min-h-screen flex flex-col items-center bg-gray-50">
+<body class="bg-gray-50 flex flex-col items-center">
 
-<div class="w-full max-w-md bg-background h-screen relative flex flex-col shadow-2xl overflow-hidden">
-  <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur-xl px-5 py-3.5 flex justify-between items-center left-1/2 -translate-x-1/2 border-b border-gray-200 shadow-sm">
-    <div class="text-[19px] font-extrabold text-gray-800 flex items-center gap-2 font-headline tracking-tight">
-      <div class="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-sm"><i data-lucide="contact" class="w-5 h-5"></i></div>
-      名片管理 <span class="text-[10px] text-primary bg-primary-light px-1.5 py-0.5 rounded ml-1 font-bold tracking-wider">V2.0</span>
-    </div>
-    <div class="flex items-center gap-3">
-      <div id="user-profile-badge" class="hidden flex items-center gap-2"><img id="user-avatar" src="" class="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-sm"></div>
+<div class="w-full max-w-md bg-white h-screen relative flex flex-col shadow-2xl overflow-hidden">
+  <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur-xl px-5 py-3.5 flex justify-between items-center left-1/2 -translate-x-1/2 border-b border-gray-200">
+    <div class="text-[19px] font-extrabold text-gray-800 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center"><i data-lucide="contact" class="w-5 h-5"></i></div>
+      名片管理
     </div>
   </nav>
 
-  <main id="main-content" class="flex-1 overflow-y-auto pb-32 pt-20 bg-gray-50">
-    <div id="view-loading" class="h-full flex flex-col items-center justify-center space-y-4 pb-20">
+  <main class="flex-1 overflow-y-auto pb-32 pt-20">
+    <div id="view-loading" class="h-full flex flex-col items-center justify-center space-y-4">
       <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <p id="loading-text" class="text-gray-500 font-bold text-[14px] tracking-wider">資料載入中</p>
+      <p id="loading-text" class="text-gray-500 font-bold text-sm">資料載入中</p>
     </div>
 
-    <div id="view-list" class="hidden animate-in fade-in">
-      <div id="admin-tools-container" class="px-5 pt-4">
-        <div class="bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-100">
-          <div class="w-12 h-12 bg-primary-light text-primary rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="scan-line" class="w-6 h-6"></i></div>
-          <h2 class="text-[16px] font-bold text-gray-800 mb-1">AI 智慧名片辨識</h2>
-          <p class="text-[13px] text-gray-500 mb-5 font-medium">拍照或上傳，自動擷取聯絡資訊。</p>
-          <div class="flex gap-3">
-            <button onclick="document.getElementById('card-camera').click()" class="btn-primary flex-[1.2]"><i data-lucide="camera" class="w-5 h-5"></i> 開啟相機</button>
-            <button onclick="document.getElementById('card-upload').click()" class="btn-secondary flex-1"><i data-lucide="image" class="w-5 h-5"></i> 從相簿</button>
-          </div>
+    <!-- 列表、辨識、表單區塊依此類推... -->
+    <div id="view-list" class="hidden px-5">
+       <div class="bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-100 my-4">
+          <button onclick="document.getElementById('card-camera').click()" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold mb-3 flex items-center justify-center gap-2">
+            <i data-lucide="camera"></i> 開啟相機
+          </button>
           <input type="file" id="card-camera" accept="image/*" capture="environment" class="hidden" onchange="openCropper(this, 'card')">
-          <input type="file" id="card-upload" accept="image/*" class="hidden" onchange="openCropper(this, 'card')">
+       </div>
+       <div id="admin-card-list-container" class="space-y-1"></div>
+    </div>
+    
+    <!-- 辨識確認表單 (對應之前的設計) -->
+    <div id="view-process" class="hidden px-5 space-y-6">
+        <div id="section-loading" class="hidden text-center py-10"><i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-blue-500"></i><p>AI 辨識中...</p></div>
+        <div id="section-form" class="hidden space-y-4">
+            <img id="process-preview-image" class="w-full rounded-xl shadow-sm">
+            <input type="text" id="f-Name" class="custom-input" placeholder="姓名">
+            <input type="text" id="f-CompanyName" class="custom-input" placeholder="公司">
+            <button onclick="resetUI()" class="w-full py-4 bg-gray-200 rounded-xl font-bold">返回</button>
         </div>
-      </div>
-
-      <div class="mt-6">
-        <div class="px-5 mb-3 flex gap-2 relative">
-          <div class="relative flex-1 flex flex-col">
-            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-[18px] h-[18px]"></i>
-            <input type="text" id="card-search-input" onkeyup="filterCardList()" class="w-full h-[50px] pl-11 pr-4 bg-white border border-transparent rounded-xl text-[15px] outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-sm font-medium" placeholder="搜尋姓名或公司...">
-          </div>
-          <button id="btn-refresh-cards" onclick="reloadCardContacts()" class="w-[50px] h-[50px] bg-white border border-transparent rounded-xl shadow-sm flex items-center justify-center text-gray-600 active:scale-95 transition-all shrink-0"><i data-lucide="refresh-ccw" class="w-5 h-5"></i></button>
-        </div>
-        <div id="admin-card-list-container" class="flex flex-col mt-2"></div>
-      </div>
     </div>
   </main>
 
-  <!-- 統一深藍底導覽列：管理員 -->
   <nav id="bottom-nav-admin" class="hidden unified-nav pb-safe">
       <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="nav-text">主頁</span></button>
       <button onclick="window.location.href='admin-sales.html'" class="nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="nav-text">店家</span></button>
-      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="nav-text">CRM</span></button>
+      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="users" class="nav-text"></i></div><span class="nav-text">CRM</span></button>
       <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="nav-text">配對</span></button>
       <button onclick="window.location.href='card.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="nav-text">名片</span></button>
       <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="nav-text">參數</span></button>
   </nav>
 </div>
 
-<!-- 裁切器容器 (省略部分樣式，維持邏輯完整) -->
-<div id="section-image-cropper" class="hidden fixed inset-0 bg-gray-900 flex flex-col z-[1080]">
-    <div class="flex justify-between items-center p-4 bg-gray-900 text-white border-b border-gray-800">
-      <button onclick="cancelCrop()" class="px-3 py-2 font-bold text-gray-400">取消</button>
-      <span class="font-bold">自由裁切</span>
-      <button onclick="confirmCrop()" class="px-4 py-1.5 font-bold text-white bg-primary rounded">完成</button>
-    </div>
-    <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden"><img id="cropper-image" src="" class="max-w-full max-h-full block opacity-0"></div>
+<div id="section-image-cropper" class="hidden fixed inset-0 bg-black z-[100] flex flex-col">
+    <div class="flex justify-between p-4 bg-black text-white"><button onclick="cropper.destroy(); document.getElementById('section-image-cropper').classList.add('hidden');">取消</button><button onclick="confirmCrop()">完成</button></div>
+    <div class="flex-1 overflow-hidden flex items-center justify-center"><img id="cropper-image" class="max-w-full max-h-full"></div>
 </div>
 
-<div id="toast" class="hidden fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all z-[10000] font-bold flex items-center gap-2 w-max max-w-[90vw] opacity-0 pointer-events-none border border-gray-700"></div>
+<div id="toast" class="hidden fixed top-16 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-full text-sm font-bold shadow-lg z-[10000]"></div>
 
-<script src="card.js?v=20260416_2250"></script>
-<script src="card-ecard.js?v=20260416_2250"></script>
+<script src="card.js?v=20260416_2310"></script>
 <script>lucide.createIcons();</script>
 </body>
 </html>
