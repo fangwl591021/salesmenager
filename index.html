@@ -13,15 +13,12 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-400 h-full; min-width: 48px; }
+        /* 統一深藍底導覽列 (Admin 與 User 共用) */
+        .unified-nav { @apply fixed bottom-0 w-full max-w-md bg-[#1e3a8a] flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.15)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-[20px] border-t border-blue-900; }
+        .nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-blue-200/60 h-full; min-width: 48px; }
         .nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
-        .nav-active { @apply text-blue-600 font-bold; }
-        .nav-active .icon-box { @apply bg-blue-50 text-blue-600; }
-        
-        .admin-nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-400 h-full; min-width: 48px; }
-        .admin-nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
-        .admin-nav-btn.admin-nav-active { @apply text-white font-bold; }
-        .admin-nav-btn.admin-nav-active .icon-box { @apply bg-gray-700 text-[#06C755]; }
+        .nav-btn.nav-active { @apply text-white font-bold; }
+        .nav-btn.nav-active .icon-box { @apply bg-white/20 text-white; }
     </style>
 </head>
 <body class="font-sans text-gray-800 min-h-screen flex flex-col items-center bg-gray-50">
@@ -93,34 +90,22 @@
             </div>
         </main>
 
-        <!-- 導航列：一般用戶 -->
-        <nav id="bottom-nav-user" class="hidden fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-100">
+        <!-- 統一深藍底導覽列：一般用戶 -->
+        <nav id="bottom-nav-user" class="hidden unified-nav">
             <button onclick="window.location.href='index.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="compass" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">探索</span></button>
             <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
             <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="receipt" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">紀錄</span></button>
-            <!-- ⭐ 此處修正為 profile.html -->
             <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="user" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">設定</span></button>
         </nav>
 
-        <!-- 導航列：管理員 -->
-        <nav id="bottom-nav-admin" class="hidden fixed bottom-0 w-full max-w-md bg-gray-900/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.2)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-800">
-            <button onclick="window.location.href='index.html'" class="admin-nav-btn admin-nav-active"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">主頁</span></button>
-            <button onclick="window.location.href='admin-sales.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">店家</span></button>
-            <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
-            <button onclick="window.location.href='fate.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
-            <button onclick="window.location.href='card.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
-            <!-- ⭐ 此處修正為 profile.html -->
-            <button onclick="window.location.href='profile.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
-        </nav>
-
-        <!-- 導航列：管理員 -->
-        <nav id="bottom-nav-admin" class="hidden fixed bottom-0 w-full max-w-md bg-gray-900/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.2)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-800">
-            <button onclick="window.location.href='index.html'" class="admin-nav-btn admin-nav-active"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">主頁</span></button>
-            <button onclick="window.location.href='admin-sales.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">店家</span></button>
-            <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
-            <button onclick="window.location.href='fate.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
-            <button onclick="window.location.href='card.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
-            <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
+        <!-- 統一深藍底導覽列：管理員 -->
+        <nav id="bottom-nav-admin" class="hidden unified-nav">
+            <button onclick="window.location.href='index.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">主頁</span></button>
+            <button onclick="window.location.href='admin-sales.html'" class="nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">店家</span></button>
+            <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
+            <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+            <button onclick="window.location.href='card.html'" class="nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
+            <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
         </nav>
     </div>
 
@@ -169,7 +154,6 @@
                 }
                 const profile = await liff.getProfile();
                 
-                // 設定大頭貼
                 if (profile.pictureUrl) {
                     const profileImg = document.getElementById('profile-img');
                     profileImg.src = profile.pictureUrl;
@@ -177,31 +161,26 @@
                     document.getElementById('user-profile').classList.remove('animate-pulse');
                 }
 
-                // 檢查註冊狀態與身限
                 const initData = await fetchAPI('initApp', { userId: profile.userId, reqActivities: false, reqContacts: false });
                 const userRes = initData.user;
 
                 if (!userRes || !userRes.isRegistered) {
-                    // 未註冊，強制跳轉到註冊頁
                     window.location.replace('register.html');
                     return;
                 }
 
-                // 已註冊，解除載入畫面
                 document.getElementById('loading-state').classList.add('hidden');
                 document.getElementById('ready-state').classList.remove('hidden');
                 
                 const uInfo = userRes.info;
                 document.getElementById('user-name').textContent = uInfo['姓名'] || profile.displayName;
 
-                // 問候語時間判斷
                 const hour = new Date().getHours();
                 let greeting = '早安，';
                 if (hour >= 12 && hour < 18) greeting = '午安，';
                 if (hour >= 18) greeting = '晚安，';
                 document.getElementById('greeting').textContent = greeting;
 
-                // 權限邏輯處理
                 const role = uInfo['角色'];
                 const status = uInfo['審核狀態'];
                 const badge = document.getElementById('role-badge');
@@ -232,7 +211,6 @@
             }
         }
 
-        // ⭐ 產生並發送專屬邀請 Flex Message
         async function shareInviteLink() {
             if (!liff.isLoggedIn()) return liff.login();
             
@@ -262,59 +240,21 @@
                         "layout": "vertical",
                         "paddingAll": "20px",
                         "contents": [
-                            {
-                                "type": "text",
-                                "text": "專屬邀請",
-                                "weight": "bold",
-                                "size": "xl",
-                                "color": "#1f2937"
-                            },
-                            {
-                                "type": "text",
-                                "text": `${userName} 邀請您加入系統！\n點擊下方按鈕免費註冊，開通專屬會員權限。`,
-                                "size": "sm",
-                                "color": "#6b7280",
-                                "wrap": true,
-                                "margin": "md"
-                            }
+                            { "type": "text", "text": "專屬邀請", "weight": "bold", "size": "xl", "color": "#1f2937" },
+                            { "type": "text", "text": `${userName} 邀請您加入系統！\n點擊下方按鈕免費註冊，開通專屬會員權限。`, "size": "sm", "color": "#6b7280", "wrap": true, "margin": "md" }
                         ]
                     },
                     "footer": {
-                        "type": "box",
-                        "layout": "vertical",
-                        "spacing": "sm",
-                        "paddingAll": "20px",
-                        "paddingTop": "0px",
-                        "contents": [
-                            {
-                                "type": "button",
-                                "style": "primary",
-                                "color": "#2563eb",
-                                "height": "sm",
-                                "action": {
-                                    "type": "uri",
-                                    "label": "立即註冊",
-                                    "uri": shareUrl
-                                }
-                            }
-                        ]
+                        "type": "box", "layout": "vertical", "spacing": "sm", "paddingAll": "20px", "paddingTop": "0px",
+                        "contents": [{ "type": "button", "style": "primary", "color": "#2563eb", "height": "sm", "action": { "type": "uri", "label": "立即註冊", "uri": shareUrl } }]
                     }
                 };
 
-                const message = {
-                    type: "flex",
-                    altText: `${userName} 邀請您加入系統`,
-                    contents: flexMessage
-                };
+                const message = { type: "flex", altText: `${userName} 邀請您加入系統`, contents: flexMessage };
 
                 const res = await liff.shareTargetPicker([message]);
-                if (res) {
-                    showToast('🚀 邀請已成功發送！', false);
-                } else {
-                    console.log("使用者已取消傳送");
-                }
+                if (res) { showToast('🚀 邀請已成功發送！', false); }
             } catch (error) {
-                console.error("Share Error:", error);
                 if (error.message && error.message.includes('not allowed')) {
                     showToast("⚠️ 系統權限已更新！即將重新登入...", true);
                     setTimeout(() => { liff.logout(); window.location.reload(); }, 2000);
