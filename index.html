@@ -1,66 +1,189 @@
-/**
- * ACTMASTER Cloudflare Worker - AI Agent 版
- * 整合「業務通」TG 系統監控
- */
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ACTMASTER 報名大師</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background-color: #F3F4F6; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased h-screen flex flex-col relative pb-16">
 
-export default {
-  async fetch(request, env, ctx) {
-    try {
-      if (request.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+    <!-- 頂部導航 -->
+    <header class="bg-white px-4 py-3 shadow-sm sticky top-0 z-50 flex items-center justify-between">
+        <h1 class="text-lg font-semibold tracking-wide text-gray-900">服務主頁</h1>
+        <div id="user-profile" class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden animate-pulse">
+            <img id="profile-img" src="" alt="" class="w-full h-full object-cover hidden">
+        </div>
+    </header>
 
-      const body = await request.json();
-      const event = body.events?.[0];
+    <!-- 主要內容區 -->
+    <main class="flex-1 overflow-y-auto hide-scrollbar p-4 space-y-4">
+        
+        <!-- 歡迎卡片 (載入中) -->
+        <div id="loading-state" class="bg-white rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+            <div class="h-6 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+        </div>
 
-      if (!event) return new Response("OK");
+        <!-- 歡迎卡片 (載入完成) -->
+        <div id="ready-state" class="bg-white rounded-2xl p-5 shadow-sm hidden">
+            <p class="text-sm text-gray-500 mb-1" id="greeting">早安，</p>
+            <h2 class="text-xl font-bold text-gray-900" id="user-name">載入中...</h2>
+        </div>
 
-      // 監控：收到 Webhook
-      ctx.waitUntil(reportStatus("收到 Webhook 請求", env));
+        <!-- 功能模組網格 -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- 活動報名 -->
+            <a href="active.html" class="bg-white rounded-2xl p-4 shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                    <i data-lucide="calendar-days"></i>
+                </div>
+                <span class="text-sm font-medium">活動報名</span>
+            </a>
 
-      if (event.type === "message") {
-        ctx.waitUntil(handleAIProcess(event, env));
-      }
-      
-      return new Response("OK", { status: 200 });
-    } catch (err) {
-      // 測試報錯自動發送
-      ctx.waitUntil(reportStatus(`系統關鍵錯誤: ${err.message}`, env, true));
-      return new Response("OK"); 
-    }
-  }
-};
+            <!-- 名片大師 -->
+            <a href="card.html" class="bg-white rounded-2xl p-4 shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                    <i data-lucide="contact"></i>
+                </div>
+                <span class="text-sm font-medium">AI 名片</span>
+            </a>
 
-async function handleAIProcess(event, env) {
-  const userId = event.source.userId;
-  const userText = event.message.text;
+            <!-- 命理媒合 -->
+            <a href="fate.html" class="bg-white rounded-2xl p-4 shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                    <i data-lucide="sparkles"></i>
+                </div>
+                <span class="text-sm font-medium">命理媒合</span>
+            </a>
 
-  try {
-    await postToLine(env, "chat/loading/start", { chatId: userId, loadingSeconds: 15 });
+            <!-- 電子名片 -->
+            <button onclick="shareEcard()" class="bg-white rounded-2xl p-4 shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
+                    <i data-lucide="share-2"></i>
+                </div>
+                <span class="text-sm font-medium">分享名片</span>
+            </button>
+        </div>
+    </main>
 
-    const aiResult = await chatWithGemini(userText, userId, env);
-    const cleanResult = aiResult.replace(/\*\*/g, "").replace(/#/g, "");
+    <!-- 底部導覽列 -->
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 flex justify-around pb-safe pt-2">
+        <a href="index.html" class="flex flex-col items-center p-2 text-blue-600">
+            <i data-lucide="layout-grid" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px]">主頁</span>
+        </a>
+        <a href="active.html" class="flex flex-col items-center p-2 text-gray-400 hover:text-gray-600">
+            <i data-lucide="calendar" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px]">活動</span>
+        </a>
+        <a href="card.html" class="flex flex-col items-center p-2 text-gray-400 hover:text-gray-600">
+            <i data-lucide="users" class="w-6 h-6 mb-1"></i>
+            <span class="text-[10px]">人脈</span>
+        </a>
+    </nav>
 
-    await postToLine(env, "message/push", {
-      to: userId,
-      messages: [{ type: "text", text: cleanResult }]
-    });
-  } catch (err) {
-    await reportStatus(`AI 處理流程失敗: ${err.message}\n用戶ID: ${userId}`, env, true);
-  }
-}
+    <script>
+        const LIFF_ID = "2008924519-RslRiLoO";
+        const WORKER_URL = "https://salesmemager.fangwl591021.workers.dev/";
+        
+        lucide.createIcons();
 
-/**
- * 發送系統狀態或報錯到 TG (透過 GAS 工具)
- */
-async function reportStatus(message, env, isError = false) {
-  const statusPrefix = isError ? "🔴 [報錯]" : "🟢 [狀態]";
-  await fetch(env.GAS_API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "notify_system",
-      content: `${statusPrefix} ${message}`
-    })
-  });
-}
+        async function initLiff() {
+            try {
+                if (!LIFF_ID || LIFF_ID === "YOUR_LIFF_ID_HERE") {
+                    throw new Error("尚未設定真實的 LIFF ID");
+                }
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                const profile = await liff.getProfile();
+                updateUI(profile);
+                checkUserStatus(profile.userId);
+            } catch (err) {
+                console.warn('LIFF 初始化失敗或處於預覽模式:', err);
+                updateUI({
+                    displayName: "開發測試者",
+                    pictureUrl: "https://ui-avatars.com/api/?name=Dev&background=random"
+                });
+                showToast("LIFF 尚未設定，啟動預覽模式");
+            }
+        }
 
-// ... 之前的 chatWithGemini 與 callGasTool 保持不變 ...
+        async function checkUserStatus(userId) {
+            try {
+                const res = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'initApp',
+                        payload: { userId: userId, reqActivities: false, reqContacts: false }
+                    })
+                });
+                const result = await res.json();
+                if (result.success && result.data && result.data.user) {
+                    if (!result.data.user.isRegistered) {
+                        showToast("提醒：您尚未完成正式會員註冊");
+                    }
+                }
+            } catch (err) {
+                console.error("Worker 連線失敗:", err);
+            }
+        }
+
+        function updateUI(profile) {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('ready-state').classList.remove('hidden');
+            
+            document.getElementById('user-name').textContent = profile.displayName;
+            
+            const profileImg = document.getElementById('profile-img');
+            const profileContainer = document.getElementById('user-profile');
+            
+            if (profile.pictureUrl) {
+                profileImg.src = profile.pictureUrl;
+                profileImg.classList.remove('hidden');
+                profileContainer.classList.remove('animate-pulse');
+            }
+            
+            const hour = new Date().getHours();
+            let greeting = '早安，';
+            if (hour >= 12 && hour < 18) greeting = '午安，';
+            if (hour >= 18) greeting = '晚安，';
+            document.getElementById('greeting').textContent = greeting;
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-16 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg z-[100] text-sm font-medium transition-all duration-300';
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function shareEcard() {
+            if (typeof liff === 'undefined' || !liff.isApiAvailable || !liff.isApiAvailable('shareTargetPicker')) {
+                showToast("此裝置或預覽模式不支援分享功能");
+                return;
+            }
+            // 呼叫 liff-share.js 的分享邏輯
+            // 此處僅為示範，後續會整合你的 card-ecard 邏輯
+            console.log("觸發分享電子名片");
+        }
+
+        window.onload = initLiff;
+    </script>
+</body>
+</html>
