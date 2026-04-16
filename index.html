@@ -1,0 +1,66 @@
+/**
+ * ACTMASTER Cloudflare Worker - AI Agent 版
+ * 整合「業務通」TG 系統監控
+ */
+
+export default {
+  async fetch(request, env, ctx) {
+    try {
+      if (request.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+
+      const body = await request.json();
+      const event = body.events?.[0];
+
+      if (!event) return new Response("OK");
+
+      // 監控：收到 Webhook
+      ctx.waitUntil(reportStatus("收到 Webhook 請求", env));
+
+      if (event.type === "message") {
+        ctx.waitUntil(handleAIProcess(event, env));
+      }
+      
+      return new Response("OK", { status: 200 });
+    } catch (err) {
+      // 測試報錯自動發送
+      ctx.waitUntil(reportStatus(`系統關鍵錯誤: ${err.message}`, env, true));
+      return new Response("OK"); 
+    }
+  }
+};
+
+async function handleAIProcess(event, env) {
+  const userId = event.source.userId;
+  const userText = event.message.text;
+
+  try {
+    await postToLine(env, "chat/loading/start", { chatId: userId, loadingSeconds: 15 });
+
+    const aiResult = await chatWithGemini(userText, userId, env);
+    const cleanResult = aiResult.replace(/\*\*/g, "").replace(/#/g, "");
+
+    await postToLine(env, "message/push", {
+      to: userId,
+      messages: [{ type: "text", text: cleanResult }]
+    });
+  } catch (err) {
+    await reportStatus(`AI 處理流程失敗: ${err.message}\n用戶ID: ${userId}`, env, true);
+  }
+}
+
+/**
+ * 發送系統狀態或報錯到 TG (透過 GAS 工具)
+ */
+async function reportStatus(message, env, isError = false) {
+  const statusPrefix = isError ? "🔴 [報錯]" : "🟢 [狀態]";
+  await fetch(env.GAS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "notify_system",
+      content: `${statusPrefix} ${message}`
+    })
+  });
+}
+
+// ... 之前的 chatWithGemini 與 callGasTool 保持不變 ...
