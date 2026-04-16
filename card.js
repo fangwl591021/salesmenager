@@ -1,10 +1,10 @@
 /**
  * card.js 
- * Version: v2.1.0 (V2 升級版：修正 Worker 網址，全面套用 Lucide 圖示與 Gray 色階，維持樂觀渲染)
+ * Version: v2.1.1 (快取清除版：更新 Cache Key 強制捨棄舊資料)
  */
 const LIFF_ID = "2008924519-RslRiLoO"; 
-const WORKER_URL = "https://salesmemager.fangwl591021.workers.dev/"; 
-const CACHE_KEY_CONTACTS = "app_cache_card_contacts_v1";
+const WORKER_URL = "https://salesmenager.fangwl591021.workers.dev/"; 
+const CACHE_KEY_CONTACTS = "app_cache_card_contacts_v2";
 
 let compressedBase64 = "";
 let userProfile = null;
@@ -44,7 +44,7 @@ window.fetchAPI = async function(action, payload = {}, silent = false) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000); 
     const response = await fetch(WORKER_URL, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action, payload }), signal: controller.signal
     });
     clearTimeout(timeoutId);
