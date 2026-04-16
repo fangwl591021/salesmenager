@@ -3,138 +3,96 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-  <title>店家審核中心</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <title>店家管理中心</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet"/>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <script id="tailwind-config">
-    window.tailwind = window.tailwind || {};
-    window.tailwind.config = {
-      theme: {
-        extend: {
-          colors: { primary: "#2563eb", background: "#f9fafb", "text-main": "#0f172a" },
-          fontFamily: { headline: ["Manrope", "Noto Sans TC", "sans-serif"], sans: ["Inter", "Noto Sans TC", "sans-serif"] }
-        },
-      },
-    };
-  </script>
-  
-  <style type="text/tailwindcss">
-    body { background-color: #f9fafb; -webkit-tap-highlight-color: transparent; }
-    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
-
-    /* 🚀 修正：統一深藍底導覽列 (與首頁同步) */
-    .unified-nav { 
-        position: fixed; bottom: 0; width: 100%; max-width: 448px;
-        background-color: #1e3a8a !important; display: flex; justify-content: space-around; 
-        align-items: center; padding: 8px 4px; z-index: 50; height: 76px;
-        border-top: 1px solid #172554; border-radius: 20px 20px 0 0;
-        box-shadow: 0 -10px 20px rgba(0,0,0,0.15); left: 50%; transform: translateX(-50%);
-    }
-    .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: rgba(191, 219, 254, 0.6); font-weight: bold; transition: all 0.2s; }
-    .nav-btn .icon-box { padding: 6px 16px; border-radius: 16px; transition: all 0.2s; margin-bottom: 2px; }
-    .nav-btn.nav-active { color: #ffffff !important; }
-    .nav-btn.nav-active .icon-box { background-color: rgba(255, 255, 255, 0.2); }
-    .nav-text { font-size: 10px; letter-spacing: 0.05em; }
+  <style>
+    body { background-color: #f8fafc; font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .unified-nav { position: fixed; bottom: 0; width: 100%; max-width: 448px; background-color: #1e3a8a !important; display: flex; justify-content: space-around; align-items: center; z-index: 50; height: 76px; border-radius: 20px 20px 0 0; left: 50%; transform: translateX(-50%); box-shadow: 0 -10px 20px rgba(0,0,0,0.15); }
+    .nav-btn { @apply flex flex-col items-center justify-center flex-1 text-blue-100/60 font-bold transition-all; }
+    .nav-btn.nav-active { @apply text-white; }
+    .nav-btn.nav-active .icon-box { @apply bg-white/20 p-1.5 rounded-xl; }
+    .list-item { @apply flex items-center gap-4 px-5 py-4 bg-white border-b border-slate-100 active:bg-slate-50 transition-colors; }
+    .section-header { @apply px-5 py-3 bg-slate-50 text-[12px] font-bold text-slate-400 uppercase tracking-widest flex justify-between; }
   </style>
 </head>
-<body class="font-sans text-text-main min-h-screen flex flex-col items-center bg-gray-50">
-
-<div class="w-full max-w-md bg-background h-screen relative flex flex-col shadow-2xl overflow-hidden">
-  <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur-xl px-5 py-4 flex justify-between items-center border-b border-gray-200 shadow-sm">
-    <div class="text-[19px] font-extrabold text-gray-800 flex items-center gap-2 font-headline tracking-tight">
-      <div class="w-8 h-8 rounded-lg bg-gray-800 text-white flex items-center justify-center shadow-sm"><i data-lucide="store" class="w-4 h-4"></i></div>
-      店家審核中心
-    </div>
-    <button onclick="loadPendingSales()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-95 transition-all"><i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i></button>
+<body class="flex flex-col items-center">
+<div class="w-full max-w-md bg-white h-screen relative flex flex-col shadow-2xl overflow-hidden">
+  
+  <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur px-5 py-4 flex justify-between items-center border-b border-slate-100">
+    <div class="text-xl font-black text-slate-800">店家審核中心</div>
+    <button onclick="loadAllSales()"><i data-lucide="refresh-cw" class="w-5 h-5 text-slate-400" id="refresh-icon"></i></button>
   </nav>
 
-  <main class="flex-1 overflow-y-auto pb-28 pt-24 px-5">
-    <div id="view-loading" class="h-64 flex flex-col items-center justify-center space-y-4">
-      <i data-lucide="loader-2" class="w-10 h-10 text-primary animate-spin"></i>
-      <p class="text-gray-500 font-bold text-[14px] tracking-wider">讀取名單中...</p>
+  <main class="flex-1 overflow-y-auto pb-32 pt-20">
+    <div id="view-loading" class="h-64 flex flex-col items-center justify-center space-y-3">
+      <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
     </div>
-    <div id="view-empty" class="hidden h-64 flex flex-col items-center justify-center space-y-4 animate-in fade-in">
-      <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center border border-gray-200"><i data-lucide="check-circle" class="w-10 h-10 text-gray-400"></i></div>
-      <h2 class="text-[18px] font-black text-gray-700 tracking-tight">目前無待審核店家</h2>
-    </div>
-    <div id="list-container" class="hidden flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4"></div>
+
+    <!-- BOX 1: 待審核 -->
+    <section id="section-pending" class="hidden">
+      <div class="section-header"><span>待審核名單</span><span id="count-pending" class="text-amber-500">0</span></div>
+      <div id="container-pending"></div>
+    </section>
+
+    <!-- BOX 2: 已通過 -->
+    <section id="section-approved" class="hidden">
+      <div class="section-header"><span>合作店家總覽</span><span id="count-approved" class="text-blue-500">0</span></div>
+      <div id="container-approved"></div>
+    </section>
+
+    <div id="view-empty" class="hidden py-20 text-center text-slate-400 font-bold">目前無註冊紀錄</div>
   </main>
 
-  <nav id="bottom-nav-admin" class="unified-nav pb-safe">
-      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="nav-text">主頁</span></button>
-      <button onclick="window.location.href='admin-sales.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="nav-text">店家</span></button>
-      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="nav-text">CRM</span></button>
-      <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="nav-text">配對</span></button>
-      <button onclick="window.location.href='card.html'" class="nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="nav-text">名片</span></button>
-      <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="nav-text">參數</span></button>
+  <nav id="bottom-nav-admin" class="unified-nav">
+      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px]">主頁</span></button>
+      <button onclick="window.location.href='admin-sales.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px]">店家</span></button>
+      <button onclick="window.location.href='card.html'" class="nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px]">名片</span></button>
+      <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px]">參數</span></button>
   </nav>
 </div>
 
-<div id="toast" class="hidden fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all z-[10000] font-bold flex items-center gap-2 w-max max-w-[90vw] opacity-0 pointer-events-none border border-gray-700"></div>
-
 <script>
   const WORKER_URL = "https://salesmemager.fangwl591021.workers.dev/"; 
-  const ADMIN_IDS = ["Uf729764dbb5b652a5a90a467320bea29"];
-  
-  lucide.createIcons();
-
-  window.showToast = function(msg, isError = false) {
-    const t = document.getElementById('toast'); if (!t) return;
-    t.innerHTML = `<i data-lucide="${isError?'alert-circle':'check-circle-2'}" class="w-4 h-4"></i> ${msg}`;
-    t.className = `fixed top-16 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg font-bold flex items-center gap-2 ${isError?'bg-red-500':'bg-gray-800'} text-white opacity-100 z-[10000]`;
-    t.classList.remove('hidden'); lucide.createIcons({ root: t });
-    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.classList.add('hidden'), 300); }, 3000); 
+  window.fetchAPI = async (action, payload = {}) => {
+    const res = await fetch(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action, payload }) });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    return d.data;
   };
 
-  async function fetchAPI(action, payload = {}) {
-    const res = await fetch(WORKER_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({action, payload}) });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error);
-    return data.data;
-  }
-
-  async function loadPendingSales() {
-     document.getElementById('view-loading').classList.remove('hidden');
-     document.getElementById('list-container').classList.add('hidden');
-     try {
-        const list = await fetchAPI('getPendingSales');
-        const container = document.getElementById('list-container');
-        if (list.length === 0) { document.getElementById('view-empty').classList.remove('hidden'); }
-        else {
-            container.innerHTML = list.map(item => `
-              <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4">
-                 <div class="flex justify-between items-start mb-3">
-                    <h3 class="text-[17px] font-black text-gray-800">${item.name}</h3>
-                    <span class="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[11px] font-bold">審核中</span>
-                 </div>
-                 <p class="text-xs text-gray-400 mb-4">帳號：${item.loginAccount}</p>
-                 <button onclick="approveSales('${item.userId}')" id="btn-${item.userId}" class="w-full py-3 bg-[#06C755] text-white rounded-xl font-bold text-sm shadow-sm active:scale-95 transition-all">允許開通</button>
-              </div>
-            `).join('');
-            lucide.createIcons({ root: container });
-            container.classList.remove('hidden');
-        }
-     } catch (e) { showToast("讀取失敗", true); }
-     finally { document.getElementById('view-loading').classList.add('hidden'); }
+  async function loadAllSales() {
+    document.getElementById('view-loading').classList.remove('hidden');
+    try {
+      const list = await fetchAPI('getAllSales');
+      const pending = list.filter(i => i.status === '審核中');
+      const approved = list.filter(i => i.status === '已開通');
+      
+      document.getElementById('container-pending').innerHTML = pending.map(i => `<div class="list-item"><div class="flex-1"><h4 class="font-bold">${i.name}</h4><p class="text-xs text-slate-400">帳號: ${i.loginAccount}</p></div><button onclick="approveSales('${i.userId}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-xs">開通</button></div>`).join('');
+      document.getElementById('container-approved').innerHTML = approved.map(i => `<div class="list-item"><div class="flex-1"><h4 class="font-bold">${i.name}</h4><p class="text-xs text-slate-400">${i.registerTime} 加入</p></div><i data-lucide="check-circle" class="text-green-500 w-5 h-5"></i></div>`).join('');
+      
+      document.getElementById('section-pending').classList.toggle('hidden', pending.length===0);
+      document.getElementById('section-approved').classList.remove('hidden');
+      document.getElementById('count-pending').innerText = pending.length;
+      document.getElementById('count-approved').innerText = approved.length;
+      lucide.createIcons();
+    } catch(e) { alert("讀取失敗"); }
+    finally { document.getElementById('view-loading').classList.add('hidden'); }
   }
 
   async function approveSales(uid) {
-     if(!confirm("確定開通？")) return;
-     try {
-        await fetchAPI('approveSales', { targetUid: uid });
-        showToast("✅ 已開通"); loadPendingSales();
-     } catch (e) { showToast("操作失敗", true); }
+    if(!confirm("確定開通權限？")) return;
+    try {
+      await fetchAPI('approveSales', { targetUid: uid });
+      loadAllSales();
+    } catch(e) { alert("操作失敗"); }
   }
 
   window.onload = async () => {
-    try {
-      await liff.init({ liffId: "2008924519-RslRiLoO" });
-      if(!liff.isLoggedIn()) liff.login();
-      loadPendingSales();
-    } catch (e) { showToast("LIFF 初始化失敗", true); }
+    await liff.init({ liffId: "2008924519-RslRiLoO" });
+    loadAllSales();
   };
 </script>
 </body>
