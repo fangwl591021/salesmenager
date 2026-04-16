@@ -18,10 +18,10 @@
         .nav-active { @apply text-blue-600 font-bold; }
         .nav-active .icon-box { @apply bg-blue-50 text-blue-600; }
         
-        .admin-nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-500 h-full; min-width: 48px; }
+        .admin-nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-400 h-full; min-width: 48px; }
         .admin-nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
-        .admin-nav-active { @apply text-white font-bold; }
-        .admin-nav-active .icon-box { @apply bg-gray-800 text-[#06C755]; }
+        .admin-nav-btn.admin-nav-active { @apply text-white font-bold; }
+        .admin-nav-btn.admin-nav-active .icon-box { @apply bg-gray-700 text-[#06C755]; }
     </style>
 </head>
 <body class="font-sans text-gray-800 min-h-screen flex flex-col items-center bg-gray-50">
@@ -98,7 +98,19 @@
             <button onclick="window.location.href='index.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="compass" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">探索</span></button>
             <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
             <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="receipt" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">紀錄</span></button>
-            <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="user" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">設定</span></button>
+            <!-- ⭐ 此處修正為 profile.html -->
+            <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="user" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">設定</span></button>
+        </nav>
+
+        <!-- 導航列：管理員 -->
+        <nav id="bottom-nav-admin" class="hidden fixed bottom-0 w-full max-w-md bg-gray-900/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.2)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-800">
+            <button onclick="window.location.href='index.html'" class="admin-nav-btn admin-nav-active"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">主頁</span></button>
+            <button onclick="window.location.href='admin-sales.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">店家</span></button>
+            <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
+            <button onclick="window.location.href='fate.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+            <button onclick="window.location.href='card.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
+            <!-- ⭐ 此處修正為 profile.html -->
+            <button onclick="window.location.href='profile.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
         </nav>
 
         <!-- 導航列：管理員 -->
