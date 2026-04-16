@@ -1,94 +1,119 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html class="light" lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ACTMASTER 報名大師</title>
+    <title>ACTMASTER 主頁</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background-color: #F3F4F6; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f9fafb; -webkit-tap-highlight-color: transparent; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-400 h-full; min-width: 48px; }
+        .nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
+        .nav-active { @apply text-blue-600 font-bold; }
+        .nav-active .icon-box { @apply bg-blue-50 text-blue-600; }
+        
+        .admin-nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-500 h-full; min-width: 48px; }
+        .admin-nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
+        .admin-nav-active { @apply text-white font-bold; }
+        .admin-nav-active .icon-box { @apply bg-gray-800 text-[#06C755]; }
     </style>
 </head>
-<body class="text-gray-800 antialiased h-screen flex flex-col relative pb-16">
+<body class="font-sans text-gray-800 min-h-screen flex flex-col items-center bg-gray-50">
 
-    <!-- 頂部導航 -->
-    <header class="bg-white px-4 py-3 shadow-sm sticky top-0 z-50 flex items-center justify-between">
-        <h1 class="text-lg font-semibold tracking-wide text-gray-900">服務主頁</h1>
-        <div id="user-profile" class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden animate-pulse">
-            <img id="profile-img" src="" alt="" class="w-full h-full object-cover hidden">
-        </div>
-    </header>
-
-    <!-- 主要內容區 -->
-    <main class="flex-1 overflow-y-auto hide-scrollbar p-4 space-y-4">
+    <div class="w-full max-w-md bg-background h-screen relative flex flex-col shadow-2xl overflow-hidden">
         
-        <!-- 歡迎卡片 (載入中) -->
-        <div id="loading-state" class="bg-white rounded-2xl p-5 shadow-sm space-y-3">
-            <div class="h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-            <div class="h-6 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-        </div>
+        <!-- 頂部導航 -->
+        <header class="bg-white/95 backdrop-blur-xl px-5 py-4 shadow-sm sticky top-0 z-50 flex items-center justify-between border-b border-gray-100">
+            <h1 class="text-[19px] font-extrabold text-gray-800 tracking-tight flex items-center gap-2">
+                <i data-lucide="layout-dashboard" class="w-6 h-6 text-blue-600"></i> 服務主頁
+            </h1>
+            <div id="user-profile" class="w-9 h-9 rounded-full bg-gray-100 overflow-hidden shadow-sm animate-pulse">
+                <img id="profile-img" src="" alt="" class="w-full h-full object-cover hidden">
+            </div>
+        </header>
 
-        <!-- 歡迎卡片 (載入完成) -->
-        <div id="ready-state" class="bg-white rounded-2xl p-5 shadow-sm hidden">
-            <p class="text-sm text-gray-500 mb-1" id="greeting">早安，</p>
-            <h2 class="text-xl font-bold text-gray-900" id="user-name">載入中...</h2>
-        </div>
+        <!-- 主要內容區 -->
+        <main class="flex-1 overflow-y-auto hide-scrollbar p-5 pb-28 space-y-6">
+            
+            <!-- 歡迎卡片 (載入中) -->
+            <div id="loading-state" class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-3">
+                <div class="h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+                <div class="h-6 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+            </div>
 
-        <!-- 功能模組網格 -->
-        <div class="grid grid-cols-2 gap-4">
-            <!-- 活動報名 -->
-            <a href="active.html" class="bg-white rounded-2xl p-4 shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                    <i data-lucide="calendar-days"></i>
+            <!-- 歡迎卡片 (載入完成) -->
+            <div id="ready-state" class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hidden">
+                <p class="text-[13px] text-gray-500 font-bold mb-1 tracking-wider" id="greeting">早安，</p>
+                <div class="flex items-center justify-between">
+                   <h2 class="text-[22px] font-black text-gray-800 tracking-tight" id="user-name">載入中...</h2>
+                   <span id="role-badge" class="hidden px-2.5 py-1 rounded-md text-[11px] font-bold tracking-widest"></span>
                 </div>
-                <span class="text-sm font-medium">活動報名</span>
-            </a>
+            </div>
 
-            <!-- 名片大師 -->
-            <a href="card.html" class="bg-white rounded-2xl p-4 shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
-                    <i data-lucide="contact"></i>
-                </div>
-                <span class="text-sm font-medium">AI 名片</span>
-            </a>
+            <!-- 功能模組網格 -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- 活動報名 -->
+                <a href="active.html" class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
+                    <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i data-lucide="calendar-days" class="w-7 h-7"></i>
+                    </div>
+                    <span class="text-[15px] font-bold text-gray-700">活動報名</span>
+                </a>
 
-            <!-- 命理媒合 -->
-            <a href="fate.html" class="bg-white rounded-2xl p-4 shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
-                    <i data-lucide="sparkles"></i>
-                </div>
-                <span class="text-sm font-medium">命理媒合</span>
-            </a>
+                <!-- 名片大師 -->
+                <a href="card.html" class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
+                    <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                        <i data-lucide="contact" class="w-7 h-7"></i>
+                    </div>
+                    <span class="text-[15px] font-bold text-gray-700">名片通訊</span>
+                </a>
 
-            <!-- 電子名片 -->
-            <button onclick="shareEcard()" class="bg-white rounded-2xl p-4 shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
-                    <i data-lucide="share-2"></i>
-                </div>
-                <span class="text-sm font-medium">分享名片</span>
-            </button>
-        </div>
-    </main>
+                <!-- 命理媒合 -->
+                <a href="fate.html" class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 active:scale-95 transition-transform flex flex-col items-center justify-center gap-3">
+                    <div class="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                        <i data-lucide="sparkles" class="w-7 h-7"></i>
+                    </div>
+                    <span class="text-[15px] font-bold text-gray-700">命理媒合</span>
+                </a>
 
-    <!-- 底部導覽列 -->
-    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 flex justify-around pb-safe pt-2">
-        <a href="index.html" class="flex flex-col items-center p-2 text-blue-600">
-            <i data-lucide="layout-grid" class="w-6 h-6 mb-1"></i>
-            <span class="text-[10px]">主頁</span>
-        </a>
-        <a href="active.html" class="flex flex-col items-center p-2 text-gray-400 hover:text-gray-600">
-            <i data-lucide="calendar" class="w-6 h-6 mb-1"></i>
-            <span class="text-[10px]">活動</span>
-        </a>
-        <a href="card.html" class="flex flex-col items-center p-2 text-gray-400 hover:text-gray-600">
-            <i data-lucide="users" class="w-6 h-6 mb-1"></i>
-            <span class="text-[10px]">人脈</span>
-        </a>
-    </nav>
+                <!-- 店家推廣 (預設隱藏，僅開通店家或管理員可見) -->
+                <button id="btn-sales-share" onclick="shareInviteLink()" class="hidden bg-white rounded-2xl p-5 shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-3 border-2 border-blue-500/20 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-100 transition-colors">
+                        <i data-lucide="share-2" class="w-7 h-7"></i>
+                    </div>
+                    <span class="text-[15px] font-bold text-indigo-700">專屬推廣</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- 導航列：一般用戶 -->
+        <nav id="bottom-nav-user" class="hidden fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-100">
+            <button onclick="window.location.href='index.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="compass" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">探索</span></button>
+            <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+            <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="receipt" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">紀錄</span></button>
+            <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="user" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">設定</span></button>
+        </nav>
+
+        <!-- 導航列：管理員 -->
+        <nav id="bottom-nav-admin" class="hidden fixed bottom-0 w-full max-w-md bg-gray-900/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.2)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-800">
+            <button onclick="window.location.href='index.html'" class="admin-nav-btn admin-nav-active"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">主頁</span></button>
+            <button onclick="window.location.href='admin-sales.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">店家</span></button>
+            <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
+            <button onclick="window.location.href='fate.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+            <button onclick="window.location.href='card.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
+            <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
+        </nav>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast" class="hidden fixed top-16 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all z-[10000] font-bold flex items-center gap-2 w-max max-w-[90vw] opacity-0 pointer-events-none border border-gray-700"></div>
 
     <script>
         const LIFF_ID = "2008924519-RslRiLoO";
@@ -96,89 +121,199 @@
         
         lucide.createIcons();
 
+        window.showToast = function(msg, isError = false) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            const iconName = isError ? 'alert-circle' : 'check-circle-2';
+            t.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4"></i> ${msg}`;
+            t.className = `fixed top-16 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all font-bold flex items-center gap-2 w-max max-w-[90vw] ${isError ? 'bg-red-500 text-white border-red-600' : 'bg-gray-800 text-white border-gray-700'} opacity-100 z-[10000]`;
+            t.classList.remove('hidden');
+            lucide.createIcons({ root: t });
+            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, -1rem)'; setTimeout(() => t.classList.add('hidden'), 300); }, 3000); 
+        };
+
+        async function fetchAPI(action, payload = {}) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            const response = await fetch(WORKER_URL, {
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action, payload }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            const resText = await response.text();
+            let result = JSON.parse(resText);
+            if (!result.success) throw new Error(result.error);
+            return result.data;
+        }
+
         async function initLiff() {
             try {
-                if (!LIFF_ID || LIFF_ID === "YOUR_LIFF_ID_HERE") {
-                    throw new Error("尚未設定真實的 LIFF ID");
-                }
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) {
                     liff.login({ redirectUri: window.location.href });
                     return;
                 }
                 const profile = await liff.getProfile();
-                updateUI(profile);
-                checkUserStatus(profile.userId);
-            } catch (err) {
-                console.warn('LIFF 初始化失敗或處於預覽模式:', err);
-                updateUI({
-                    displayName: "開發測試者",
-                    pictureUrl: "https://ui-avatars.com/api/?name=Dev&background=random"
-                });
-                showToast("LIFF 尚未設定，啟動預覽模式");
-            }
-        }
+                
+                // 設定大頭貼
+                if (profile.pictureUrl) {
+                    const profileImg = document.getElementById('profile-img');
+                    profileImg.src = profile.pictureUrl;
+                    profileImg.classList.remove('hidden');
+                    document.getElementById('user-profile').classList.remove('animate-pulse');
+                }
 
-        async function checkUserStatus(userId) {
-            try {
-                const res = await fetch(WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'initApp',
-                        payload: { userId: userId, reqActivities: false, reqContacts: false }
-                    })
-                });
-                const result = await res.json();
-                if (result.success && result.data && result.data.user) {
-                    if (!result.data.user.isRegistered) {
-                        showToast("提醒：您尚未完成正式會員註冊");
+                // 檢查註冊狀態與身限
+                const initData = await fetchAPI('initApp', { userId: profile.userId, reqActivities: false, reqContacts: false });
+                const userRes = initData.user;
+
+                if (!userRes || !userRes.isRegistered) {
+                    // 未註冊，強制跳轉到註冊頁
+                    window.location.replace('register.html');
+                    return;
+                }
+
+                // 已註冊，解除載入畫面
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('ready-state').classList.remove('hidden');
+                
+                const uInfo = userRes.info;
+                document.getElementById('user-name').textContent = uInfo['姓名'] || profile.displayName;
+
+                // 問候語時間判斷
+                const hour = new Date().getHours();
+                let greeting = '早安，';
+                if (hour >= 12 && hour < 18) greeting = '午安，';
+                if (hour >= 18) greeting = '晚安，';
+                document.getElementById('greeting').textContent = greeting;
+
+                // 權限邏輯處理
+                const role = uInfo['角色'];
+                const status = uInfo['審核狀態'];
+                const badge = document.getElementById('role-badge');
+
+                if (role === 'admin') {
+                    document.getElementById('bottom-nav-admin').classList.remove('hidden');
+                    document.getElementById('btn-sales-share').classList.remove('hidden');
+                    badge.textContent = "系統管理員";
+                    badge.classList.add('bg-gray-800', 'text-white');
+                    badge.classList.remove('hidden');
+                } else {
+                    document.getElementById('bottom-nav-user').classList.remove('hidden');
+                    if (role === 'sales') {
+                        badge.classList.remove('hidden');
+                        if (status === '已開通') {
+                            document.getElementById('btn-sales-share').classList.remove('hidden');
+                            badge.textContent = "合作店家";
+                            badge.classList.add('bg-indigo-100', 'text-indigo-700');
+                        } else {
+                            badge.textContent = "審核中";
+                            badge.classList.add('bg-amber-100', 'text-amber-700');
+                        }
                     }
                 }
+
             } catch (err) {
-                console.error("Worker 連線失敗:", err);
+                showToast("系統載入失敗：" + err.message, true);
             }
         }
 
-        function updateUI(profile) {
-            document.getElementById('loading-state').classList.add('hidden');
-            document.getElementById('ready-state').classList.remove('hidden');
+        // ⭐ 產生並發送專屬邀請 Flex Message
+        async function shareInviteLink() {
+            if (!liff.isLoggedIn()) return liff.login();
             
-            document.getElementById('user-name').textContent = profile.displayName;
-            
-            const profileImg = document.getElementById('profile-img');
-            const profileContainer = document.getElementById('user-profile');
-            
-            if (profile.pictureUrl) {
-                profileImg.src = profile.pictureUrl;
-                profileImg.classList.remove('hidden');
-                profileContainer.classList.remove('animate-pulse');
-            }
-            
-            const hour = new Date().getHours();
-            let greeting = '早安，';
-            if (hour >= 12 && hour < 18) greeting = '午安，';
-            if (hour >= 18) greeting = '晚安，';
-            document.getElementById('greeting').textContent = greeting;
-        }
+            const btn = document.getElementById('btn-sales-share');
+            const oriHtml = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-6 h-6 animate-spin text-indigo-600"></i><span class="text-[15px] font-bold text-indigo-700 mt-3">產生中...</span>';
+            lucide.createIcons({ root: btn });
+            btn.classList.add('pointer-events-none', 'opacity-70');
 
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'fixed top-16 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg z-[100] text-sm font-medium transition-all duration-300';
-            toast.innerText = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
+            try {
+                const profile = await liff.getProfile();
+                const shareUrl = `https://liff.line.me/${LIFF_ID}/register.html?referrer=${profile.userId}`;
+                const userName = document.getElementById('user-name').innerText; 
 
-        function shareEcard() {
-            if (typeof liff === 'undefined' || !liff.isApiAvailable || !liff.isApiAvailable('shareTargetPicker')) {
-                showToast("此裝置或預覽模式不支援分享功能");
-                return;
+                const flexMessage = {
+                    "type": "bubble",
+                    "size": "mega",
+                    "hero": {
+                        "type": "image",
+                        "url": "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&q=80",
+                        "size": "full",
+                        "aspectRatio": "20:13",
+                        "aspectMode": "cover"
+                    },
+                    "body": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "paddingAll": "20px",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": "專屬邀請",
+                                "weight": "bold",
+                                "size": "xl",
+                                "color": "#1f2937"
+                            },
+                            {
+                                "type": "text",
+                                "text": `${userName} 邀請您加入系統！\n點擊下方按鈕免費註冊，開通專屬會員權限。`,
+                                "size": "sm",
+                                "color": "#6b7280",
+                                "wrap": true,
+                                "margin": "md"
+                            }
+                        ]
+                    },
+                    "footer": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "spacing": "sm",
+                        "paddingAll": "20px",
+                        "paddingTop": "0px",
+                        "contents": [
+                            {
+                                "type": "button",
+                                "style": "primary",
+                                "color": "#2563eb",
+                                "height": "sm",
+                                "action": {
+                                    "type": "uri",
+                                    "label": "立即註冊",
+                                    "uri": shareUrl
+                                }
+                            }
+                        ]
+                    }
+                };
+
+                const message = {
+                    type: "flex",
+                    altText: `${userName} 邀請您加入系統`,
+                    contents: flexMessage
+                };
+
+                const res = await liff.shareTargetPicker([message]);
+                if (res) {
+                    showToast('🚀 邀請已成功發送！', false);
+                } else {
+                    console.log("使用者已取消傳送");
+                }
+            } catch (error) {
+                console.error("Share Error:", error);
+                if (error.message && error.message.includes('not allowed')) {
+                    showToast("⚠️ 系統權限已更新！即將重新登入...", true);
+                    setTimeout(() => { liff.logout(); window.location.reload(); }, 2000);
+                } else {
+                    showToast('發送取消或發生未知錯誤', true);
+                }
+            } finally {
+                btn.innerHTML = oriHtml;
+                btn.classList.remove('pointer-events-none', 'opacity-70');
+                lucide.createIcons({ root: btn });
             }
-            console.log("觸發分享電子名片");
         }
 
         window.onload = initLiff;
