@@ -16,7 +16,7 @@
         extend: {
           colors: {
             primary: "#2563eb", 
-            background: "#f3f4f6",
+            background: "#ffffff",
             "text-main": "#0f172a",
           },
           fontFamily: {
@@ -29,30 +29,24 @@
   </script>
   
   <style type="text/tailwindcss">
-    body { background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #ffffff; -webkit-tap-highlight-color: transparent; }
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* 原生列表風格輸入框 */
-    .list-input-group { @apply bg-white border-y border-gray-200 mt-6; }
-    .list-item { @apply flex flex-col px-4 py-3 border-b border-gray-100 last:border-b-0; }
-    .list-label { @apply text-[12px] text-gray-500 font-bold mb-1; }
-    .list-input { @apply w-full text-[15px] font-medium text-gray-800 outline-none bg-transparent placeholder-gray-300 p-0 border-none focus:ring-0; }
-    .list-textarea { @apply w-full text-[15px] font-medium text-gray-800 outline-none bg-transparent placeholder-gray-300 p-0 border-none focus:ring-0 resize-none leading-relaxed; }
+    /* 新版清晰輸入框樣式 (對齊截圖) */
+    .form-label { @apply block text-[13px] text-gray-700 mb-1.5; }
+    .form-input { @apply w-full h-[46px] px-3 bg-white border border-gray-400 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium text-gray-800 text-[15px] placeholder-gray-300 shadow-sm; }
 
-    .nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-400 h-full; min-width: 48px; }
+    /* 統一深藍底導覽列 (Admin 與 User 共用) */
+    .unified-nav { @apply fixed bottom-0 w-full max-w-md bg-[#1e3a8a] flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.15)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-[20px] border-t border-blue-900; }
+    .nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-blue-200/60 h-full; min-width: 48px; }
     .nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
-    .nav-active { @apply text-blue-600 font-bold; }
-    .nav-active .icon-box { @apply bg-blue-50 text-blue-600; }
-
-    .admin-nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-400 h-full; min-width: 48px; }
-    .admin-nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
-    .admin-nav-btn.admin-nav-active { @apply text-white font-bold; }
-    .admin-nav-btn.admin-nav-active .icon-box { @apply bg-gray-700 text-[#06C755]; }
+    .nav-btn.nav-active { @apply text-white font-bold; }
+    .nav-btn.nav-active .icon-box { @apply bg-white/20 text-white; }
   </style>
 </head>
-<body class="font-sans text-text-main min-h-screen flex flex-col items-center bg-gray-100">
+<body class="font-sans text-text-main min-h-screen flex flex-col items-center bg-gray-50">
 
 <div class="w-full max-w-md bg-background h-screen relative flex flex-col shadow-2xl overflow-hidden">
   
@@ -73,71 +67,68 @@
     <div id="view-profile" class="hidden animate-in fade-in">
       
       <!-- 頭像與基本狀態區 -->
-      <div class="bg-white px-5 py-6 flex items-center gap-4 border-b border-gray-200 shadow-sm">
-        <img id="profile-img" src="" class="w-16 h-16 rounded-full object-cover border border-gray-100 shadow-sm">
+      <div class="bg-gray-50 px-5 py-6 flex items-center gap-4 border-b border-gray-200">
+        <img id="profile-img" src="" class="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm bg-white">
         <div class="flex-1">
           <h2 class="text-[20px] font-black text-gray-800" id="display-name">載入中...</h2>
           <div class="flex items-center gap-2 mt-1">
-            <span id="role-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-600">會員</span>
-            <span id="status-badge" class="px-2 py-0.5 rounded text-[11px] font-bold hidden"></span>
+            <span id="role-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-white border border-gray-200 text-gray-600">會員</span>
+            <span id="status-badge" class="px-2 py-0.5 rounded text-[11px] font-bold hidden border"></span>
           </div>
         </div>
       </div>
 
-      <!-- 資料編輯區 (原生列表風格) -->
-      <div class="list-input-group shadow-sm">
-        <div class="list-item">
-          <label class="list-label">真實姓名</label>
-          <input type="text" id="f-name" class="list-input" placeholder="請輸入姓名">
+      <!-- 清晰欄位設定區 -->
+      <div class="px-5 py-6 space-y-5 bg-white">
+        <div>
+          <label class="form-label">真實姓名</label>
+          <input type="text" id="f-name" class="form-input" placeholder="例如：方萬隆">
         </div>
-        <div class="list-item">
-          <label class="list-label">手機號碼</label>
-          <input type="tel" id="f-phone" class="list-input" placeholder="09xx...">
+        <div>
+          <label class="form-label">手機號碼</label>
+          <input type="tel" id="f-phone" class="form-input" placeholder="09xx...">
         </div>
-        <div class="list-item">
-          <label class="list-label">產業類別</label>
-          <input type="text" id="f-industry" class="list-input" placeholder="如：資訊、服務業...">
+        <div>
+          <label class="form-label">產業類別</label>
+          <input type="text" id="f-industry" class="form-input" placeholder="例如：資訊軟體、教育...">
         </div>
-      </div>
-
-      <div class="px-4 mt-2 mb-1">
-        <p class="text-[12px] text-gray-500 font-medium">基本資訊將用於活動報名與系統顯示。</p>
-      </div>
-
-      <!-- 社群網址區 -->
-      <div class="list-input-group shadow-sm">
-        <div class="list-item">
-          <label class="list-label flex justify-between">
-            <span>社群網址 (可填多筆)</span>
-            <i data-lucide="link" class="w-4 h-4 text-gray-400"></i>
-          </label>
-          <textarea id="f-social" class="list-textarea h-28 mt-1" placeholder="請貼上您的 Facebook、Instagram 或個人網站連結 (每行一個)"></textarea>
+        
+        <div class="pt-6 mt-6 border-t border-gray-100">
+          <div class="flex justify-between items-end mb-3">
+             <label class="form-label !mb-0">社群網址</label>
+             <button onclick="addSocialLink('')" class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md text-[12px] font-bold shadow-sm active:scale-95 transition-transform flex items-center gap-1">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> 新增連結
+             </button>
+          </div>
+          
+          <!-- 動態生成的社群網址清單 -->
+          <div id="social-links-container" class="space-y-3">
+             <!-- 這裡由 JS 動態渲染 -->
+          </div>
+          
+          <p class="text-[12px] text-gray-400 font-medium mt-3 leading-relaxed">可貼上您的 Facebook、Instagram 或個人網站連結，這些連結未來可授權提供給媒合對象或自動匯入數位名片中。</p>
         </div>
-      </div>
-
-      <div class="px-4 mt-2 mb-8">
-        <p class="text-[12px] text-gray-500 font-medium">這些連結未來可授權提供給媒合對象或自動匯入數位名片中。</p>
       </div>
       
     </div>
   </main>
 
-  <!-- 導航列：一般用戶 -->
-  <nav id="bottom-nav-user" class="hidden fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-100">
+  <!-- 統一深藍底導覽列：一般用戶 -->
+  <nav id="bottom-nav-user" class="hidden unified-nav">
       <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="compass" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">探索</span></button>
       <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
       <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="receipt" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">紀錄</span></button>
       <button onclick="window.location.href='profile.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="user" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">設定</span></button>
   </nav>
 
-  <!-- 導航列：管理員 -->
-  <nav id="bottom-nav-admin" class="hidden fixed bottom-0 w-full max-w-md bg-gray-900/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.2)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-800">
-      <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">主頁</span></button>
-      <button onclick="window.location.href='admin-sales.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">店家</span></button>
-      <button onclick="window.location.href='index.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
-      <button onclick="window.location.href='fate.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
-      <button onclick="window.location.href='card.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
-      <button onclick="window.location.href='profile.html'" class="admin-nav-btn admin-nav-active"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
+  <!-- 統一深藍底導覽列：管理員 -->
+  <nav id="bottom-nav-admin" class="hidden unified-nav">
+      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">主頁</span></button>
+      <button onclick="window.location.href='admin-sales.html'" class="nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">店家</span></button>
+      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
+      <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+      <button onclick="window.location.href='card.html'" class="nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
+      <button onclick="window.location.href='profile.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
   </nav>
 </div>
 
@@ -149,6 +140,7 @@
   
   let liffProfile = null;
   let isProcessing = false;
+  let socialLinksArr = [];
 
   lucide.createIcons();
 
@@ -179,6 +171,40 @@
     return result.data;
   }
 
+  // ⭐ 動態渲染社群網址輸入框
+  function renderSocialLinks() {
+      const container = document.getElementById('social-links-container');
+      container.innerHTML = '';
+      socialLinksArr.forEach((link, idx) => {
+          container.innerHTML += `
+          <div class="flex items-center gap-2 relative">
+              <i data-lucide="link" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+              <input type="text" class="form-input !pl-9" value="${link}" oninput="socialLinksArr[${idx}]=this.value; triggerSaveBtn();" placeholder="https://...">
+              <button onclick="removeSocialLink(${idx})" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shrink-0 bg-gray-50 border border-gray-200 rounded-md">
+                  <i data-lucide="trash-2" class="w-[18px] h-[18px]"></i>
+              </button>
+          </div>`;
+      });
+      lucide.createIcons({root: container});
+  }
+
+  function addSocialLink(val) { 
+      socialLinksArr.push(val); 
+      renderSocialLinks(); 
+      triggerSaveBtn(); 
+  }
+  
+  function removeSocialLink(idx) { 
+      socialLinksArr.splice(idx, 1); 
+      if (socialLinksArr.length === 0) socialLinksArr.push(''); // 保留至少一行
+      renderSocialLinks(); 
+      triggerSaveBtn(); 
+  }
+
+  function triggerSaveBtn() {
+      document.getElementById('btn-save').classList.remove('hidden');
+  }
+
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       await liff.init({ liffId: LIFF_ID });
@@ -199,11 +225,16 @@
       const info = userRes.info;
       document.getElementById('display-name').innerText = info['姓名'] || liffProfile.displayName;
       
-      // 填入表單
+      // 填入基本表單
       document.getElementById('f-name').value = info['姓名'] || '';
       document.getElementById('f-phone').value = info['電話'] || '';
       document.getElementById('f-industry').value = info['業種'] || '';
-      document.getElementById('f-social').value = info['社群帳號'] || '';
+
+      // 解析社群網址並載入陣列
+      const rawSocial = info['社群帳號'] || '';
+      socialLinksArr = rawSocial.split('\n').map(s => s.trim()).filter(s => s !== '');
+      if (socialLinksArr.length === 0) socialLinksArr.push(''); 
+      renderSocialLinks();
 
       // 權限徽章
       const role = info['角色'];
@@ -213,27 +244,25 @@
 
       if (role === 'admin') {
           roleBadge.textContent = "系統管理員";
-          roleBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-gray-800 text-white";
+          roleBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-gray-800 text-white border border-gray-800";
           document.getElementById('bottom-nav-admin').classList.remove('hidden');
       } else {
           document.getElementById('bottom-nav-user').classList.remove('hidden');
           if (role === 'sales') {
               roleBadge.textContent = "合作店家";
-              roleBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-700";
+              roleBadge.className = "px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100";
               statusBadge.classList.remove('hidden');
               statusBadge.textContent = status;
               statusBadge.className = status === '已開通' 
-                  ? "px-2 py-0.5 rounded text-[11px] font-bold bg-green-100 text-green-700"
-                  : "px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-700";
+                  ? "px-2 py-0.5 rounded text-[11px] font-bold bg-green-50 text-green-700 border border-green-200"
+                  : "px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200";
           }
       }
 
-      // 監聽輸入框變更以顯示儲存按鈕
-      const inputs = document.querySelectorAll('.list-input, .list-textarea');
+      // 監聽基本輸入框變更
+      const inputs = document.querySelectorAll('.form-input');
       inputs.forEach(input => {
-          input.addEventListener('input', () => {
-              document.getElementById('btn-save').classList.remove('hidden');
-          });
+          input.addEventListener('input', triggerSaveBtn);
       });
 
       document.getElementById('view-loading').classList.add('hidden');
@@ -250,7 +279,9 @@
     const name = document.getElementById('f-name').value.trim();
     const phone = document.getElementById('f-phone').value.trim();
     const industry = document.getElementById('f-industry').value.trim();
-    const social = document.getElementById('f-social').value.trim();
+    
+    // 組合社群陣列 (過濾空白)
+    const finalSocial = socialLinksArr.map(s => s.trim()).filter(s => s !== '').join('\n');
 
     if (!name) return showToast("請輸入真實姓名", true);
 
@@ -266,7 +297,7 @@
         name: name,
         phone: phone,
         industry: industry,
-        social: social
+        social: finalSocial
       });
       
       document.getElementById('display-name').innerText = name;
