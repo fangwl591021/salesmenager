@@ -1,4 +1,4 @@
-<!-- Version: v7.6.1 (100% 原始邏輯恢復 + 藍底白字導覽列修正) -->
+<!-- Version: v7.6.2 (100% 原始邏輯恢復 + ID 遺失修復版) -->
 <!DOCTYPE html>
 <html class="light" lang="zh-TW">
 <head>
@@ -30,7 +30,6 @@
     body { background-color: #ffffff; -webkit-tap-highlight-color: transparent; }
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
     
-    /* 🚀 修正：輸入框清晰灰色邊框 (回應截圖需求) */
     .input-label { @apply block text-[13px] font-bold text-slate-500 mb-2 uppercase tracking-wider; }
     .custom-input { @apply w-full h-[50px] px-4 bg-white border border-slate-300 rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-medium text-slate-800 text-[15px] shadow-sm placeholder-slate-400; }
     .textarea-block { @apply w-full p-4 bg-white border border-slate-300 rounded-xl outline-none focus:border-primary transition-all text-[15px] text-slate-800 resize-none leading-relaxed shadow-sm; }
@@ -38,7 +37,6 @@
     .btn-primary { @apply w-full py-4 bg-primary text-white rounded-xl font-bold text-[16px] shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2; }
     .btn-secondary { @apply w-full py-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-[16px] active:scale-[0.98] transition-all flex items-center justify-center gap-2; }
 
-    /* 🚀 修正：統一導覽列：藍底白字 (最高權限) */
     .unified-nav { 
         position: fixed; bottom: 0; width: 100%; max-width: 448px;
         background-color: #1e3a8a !important; display: flex; justify-content: space-around; 
@@ -67,10 +65,10 @@
   </nav>
 
   <main id="main-content" class="flex-1 overflow-y-auto pb-32 pt-20 bg-gray-50">
-    <!-- 載入中 -->
+    <!-- 🚀 修正 1：補回 id="loading-text" 解決 TypeError -->
     <div id="view-loading" class="h-full flex flex-col items-center justify-center space-y-4">
       <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      <p class="text-slate-400 font-bold text-xs uppercase tracking-widest">Syncing Records</p>
+      <p id="loading-text" class="text-slate-400 font-bold text-xs uppercase tracking-widest">Syncing Records</p>
     </div>
 
     <!-- 主列表 -->
@@ -85,7 +83,7 @@
       <div id="card-list-container" class="space-y-0.5"></div>
     </div>
 
-    <!-- AI 確認表單畫面 (完全依照 v7.5.6) -->
+    <!-- AI 確認表單畫面 -->
     <div id="view-process" class="hidden px-5 space-y-6 pt-4 animate-in fade-in">
       <div id="section-loading" class="hidden text-center py-24"><span class="material-symbols-outlined text-4xl text-blue-600 animate-spin mb-4 inline-block">autorenew</span><p class="font-black text-slate-500 uppercase tracking-widest text-sm">AI Parallel Processing...</p></div>
       <div id="section-form" class="hidden space-y-5">
@@ -112,11 +110,7 @@
   </nav>
 </div>
 
-<!-- ========================================== -->
-<!-- 🚀 100% 還原：所有 Modal 與組件結構 -->
-<!-- ========================================== -->
-
-<!-- 1. 名片詳情 Read-only Modal -->
+<!-- 名片詳情 Read-only Modal -->
 <div id="readonly-modal" class="hidden fixed inset-0 bg-white z-[1000] flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full max-w-md mx-auto left-0 right-0 shadow-2xl">
   <div class="p-4 flex justify-between items-center border-b shadow-sm shrink-0">
       <h3 class="font-black text-slate-800">名片詳細資料</h3>
@@ -128,7 +122,8 @@
           <h2 id="ro-name" class="text-3xl font-black text-slate-800 mb-1"></h2>
           <p id="ro-title" class="text-slate-400 font-bold text-sm mb-8"></p>
           <div class="space-y-6 border-t border-slate-50 pt-8">
-              <div class="flex items-center gap-4"><span class="material-symbols-outlined text-slate-300">apartment</span><span id="ro-company" class="font-bold text-slate-700"></span></div>
+              <!-- 🚀 修正 2：重複 ID 修正 -->
+              <div class="flex items-center gap-4"><span class="material-symbols-outlined text-slate-300">apartment</span><span id="ro-company-sub" class="font-bold text-slate-700"></span></div>
               <div class="flex items-center gap-4"><span class="material-symbols-outlined text-blue-600">smartphone</span><a id="ro-mobile" class="text-blue-600 font-black text-xl"></a></div>
               <div id="ro-notes-box" class="p-4 bg-slate-50 rounded-xl border border-slate-100"><p id="ro-notes" class="text-sm text-slate-500 italic"></p></div>
           </div>
@@ -139,7 +134,7 @@
   </div>
 </div>
 
-<!-- 2. 裁切器 Modal -->
+<!-- 裁切器 Modal -->
 <div id="section-cropper" class="hidden fixed inset-0 bg-black z-[2000] flex flex-col">
   <div class="p-4 flex justify-between items-center text-white border-b border-slate-800 shrink-0">
       <button onclick="if(typeof window.cancelCrop === 'function') window.cancelCrop()" class="px-4 py-2 font-bold text-slate-400">取消</button>
@@ -151,9 +146,7 @@
 
 <div id="toast" class="hidden fixed top-16 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-full text-sm font-bold shadow-lg z-[10000]"></div>
 
-<!-- 補全 JavaScript 邏輯 (定義在同個檔案內確保 not defined 不再發生) -->
-<script src="card.js?v=20260417_0055"></script>
-<script src="card-ecard.js?v=20260417_0055"></script>
-
+<script src="card.js?v=20260417_0040"></script>
+<script src="card-ecard.js?v=20260417_0040"></script>
 </body>
 </html>
