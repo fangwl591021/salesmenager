@@ -1,0 +1,916 @@
+<!-- Version: v2.0.0 (V2 升級版：Lucide Icons 替換、Gray 色階重構與 CORS 繞過策略) -->
+<!DOCTYPE html>
+<html class="light" lang="zh-TW">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+  <title>AI 商業智能配對</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#ec4899", 
+            "primary-light": "#fce7f3",
+            background: "#f9fafb",
+            "input-bg": "#f3f4f6",
+            "text-main": "#1f2937",
+          }
+        },
+      },
+    }
+  </script>
+  <style type="text/tailwindcss">
+    body { background-color: #f9fafb; -webkit-tap-highlight-color: transparent; }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
+    .custom-input { @apply w-full py-4 px-5 bg-input-bg border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/30 transition-all font-medium text-text-main; }
+    
+    .nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-400; min-width: 48px; }
+    .nav-btn .icon-box { @apply px-3 py-1.5 rounded-full transition-all flex items-center justify-center; }
+    .nav-active { @apply text-primary font-bold; }
+    .nav-active .icon-box { @apply bg-primary-light text-primary; }
+    
+    .admin-nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-gray-500 h-full; min-width: 48px; }
+    .admin-nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
+    .admin-nav-active { @apply text-white font-bold; }
+    .admin-nav-active .icon-box { @apply bg-gray-800 text-[#06C755]; }
+  </style>
+</head>
+<body class="font-body text-text-main min-h-screen flex flex-col items-center">
+
+<div class="w-full max-w-md bg-background h-screen relative flex flex-col shadow-2xl overflow-hidden">
+  
+  <nav class="fixed top-0 w-full max-w-md z-40 bg-background/90 backdrop-blur-xl px-6 py-4 flex justify-between items-center left-1/2 -translate-x-1/2 border-b border-gray-200/50">
+    <div class="text-[20px] font-black text-primary flex items-center gap-2 font-headline tracking-tight">
+      <i data-lucide="sparkles" class="w-6 h-6"></i>
+      AI 合作配對池
+    </div>
+  </nav>
+
+  <main class="flex-1 overflow-y-auto pb-32 pt-20 px-4 space-y-6">
+    
+    <div id="view-loading" class="h-full flex flex-col items-center justify-center space-y-4 pb-20">
+      <i data-lucide="loader-2" class="w-12 h-12 text-primary animate-spin mb-2 mx-auto"></i>
+      <p class="text-primary font-bold tracking-widest text-sm">載入通訊錄與標籤...</p>
+    </div>
+
+    <div id="view-main" class="hidden animate-in fade-in pt-2">
+      
+      <div id="admin-tools-container" class="bg-white rounded-[2rem] shadow-sm p-5 mb-4 border border-gray-100 flex justify-between items-center hidden">
+        <div>
+           <h3 class="text-sm font-black text-gray-800">資料庫標籤狀態</h3>
+           <p id="sync-status" class="text-[11px] text-gray-500 font-medium mt-1 leading-snug">
+             共 <span id="total-count" class="font-bold text-gray-700">0</span> 筆，缺漏 <span id="missing-count" class="text-red-500 font-bold">0</span> 筆
+           </p>
+        </div>
+        <div class="flex flex-col gap-2 shrink-0">
+          <button id="btn-sync-tags" onclick="syncOldTags(false)" class="px-4 py-2 bg-gray-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all hidden shadow-md">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i> 一鍵補漏
+          </button>
+          <button id="btn-force-recalc" onclick="syncOldTags(true)" class="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all shadow-md">
+              <i data-lucide="refresh-ccw" class="w-4 h-4"></i> 全庫重算
+          </button>
+        </div>
+      </div>
+
+      <div id="privacy-lock-container" class="hidden bg-white rounded-[2rem] shadow-sm p-8 mb-6 text-center border border-gray-100 animate-in zoom-in-95">
+        <div class="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+          <i data-lucide="lock" class="w-8 h-8"></i>
+        </div>
+        <h2 class="text-[18px] font-black text-gray-800 mb-2">隱私模式已開啟</h2>
+        <p class="text-[13px] text-gray-500 leading-relaxed mb-6 font-medium">為了維護社群的互惠與公平性，若要使用 AI 智慧配對尋找夥伴，必須將您的名片開放至配對池中。<br><br><span class="text-[11px] text-gray-400">（註：管理員不受此限）</span></p>
+        <button onclick="toggleFatePrivacy(true)" class="w-full py-4 bg-[#06C755] text-white rounded-2xl font-bold text-[15px] active:scale-95 transition-transform shadow-sm flex justify-center items-center gap-2">立即公開名片並解鎖 <i data-lucide="unlock" class="w-[18px] h-[18px]"></i></button>
+      </div>
+
+      <div id="matchmaker-ui" class="bg-white rounded-[2rem] shadow-sm p-6 mb-6">
+        
+        <div class="flex justify-between items-center mb-6 pb-5 border-b border-gray-50">
+           <div class="flex flex-col">
+               <span class="text-[15px] font-black text-gray-800 flex items-center gap-1.5"><i data-lucide="globe" class="w-[18px] h-[18px] text-[#06C755]"></i> 參與配對池</span>
+               <span class="text-[11px] text-gray-400 font-bold mt-0.5 tracking-wide">名片已公開，允許他人搜尋</span>
+           </div>
+           <label class="relative inline-flex items-center cursor-pointer">
+             <input type="checkbox" id="fate-privacy-toggle" class="sr-only peer" checked onchange="toggleFatePrivacy()">
+             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#06C755]"></div>
+           </label>
+        </div>
+
+        <h2 class="text-xl font-black mb-2 text-gray-800">尋找完美合作夥伴</h2>
+        <p class="text-sm text-gray-500 mb-4 font-medium">輸入您的業務需求，AI 將結合您的性格與 CRM 資料庫的命理標籤，尋找最互補的人選。</p>
+        
+        <div id="quota-display" class="hidden bg-pink-50/50 border border-pink-100 rounded-2xl p-4 mb-4 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-pink-700">
+             <i data-lucide="zap" class="w-5 h-5"></i>
+             <span class="font-bold text-[14px]">每日 AI 媒合額度</span>
+          </div>
+          <div class="bg-white px-3 py-1 rounded-lg shadow-sm text-[13px] font-black text-pink-600">
+             剩餘 <span id="quota-remaining" class="text-[16px]">5</span> 次
+          </div>
+        </div>
+
+        <textarea id="search-query" class="custom-input h-28 resize-none mb-4" placeholder="例如：我想找有電商通路資源的夥伴，且做事穩重細心..."></textarea>
+        
+        <button id="btn-match" onclick="startMatchmaking()" class="w-full py-4 bg-primary text-white rounded-2xl font-bold text-[16px] shadow-lg shadow-pink-500/30 active:scale-95 transition-all flex items-center justify-center gap-2">
+          <i data-lucide="wand-2" class="w-5 h-5"></i> 啟動 AI 媒合
+        </button>
+      </div>
+
+      <div id="results-container" class="space-y-4">
+      </div>
+    </div>
+
+  </main>
+
+  <nav id="bottom-nav-user" class="hidden fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-100">
+    <button onclick="window.location.href='index.html?view=user-activities'" class="nav-btn"><div class="icon-box"><i data-lucide="compass" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">探索</span></button>
+    <button onclick="window.location.href='fate.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+    <button onclick="window.location.href='index.html?view=user-history'" class="nav-btn"><div class="icon-box"><i data-lucide="receipt" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">紀錄</span></button>
+    <button onclick="window.location.href='index.html?view=user-profile'" class="nav-btn"><div class="icon-box"><i data-lucide="user" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">設定</span></button>
+  </nav>
+
+  <nav id="bottom-nav-admin" class="hidden fixed bottom-0 w-full max-w-md bg-gray-900/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.2)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-gray-800">
+    <button onclick="window.location.href='index.html?view=admin-activities'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">核銷</span></button>
+    <button onclick="window.location.href='active.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="plus-circle" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">建立</span></button>
+    <button onclick="window.location.href='index.html?view=admin-crm'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
+    <button onclick="window.location.href='fate.html'" class="admin-nav-btn admin-nav-active"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+    <button onclick="window.location.href='card.html'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
+    <button onclick="window.location.href='index.html?view=admin-settings'" class="admin-nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
+  </nav>
+</div>
+
+<div id="readonly-card-modal" class="hidden fixed inset-0 bg-gray-100/95 backdrop-blur-sm flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full max-w-md mx-auto left-0 right-0 shadow-2xl" style="z-index: 1050;">
+  <div class="bg-white px-5 py-4 flex justify-between items-center border-b border-gray-200 z-10 shrink-0 shadow-sm">
+    <h3 class="text-lg font-black text-gray-800">數位名片</h3>
+    <button onclick="closeReadOnlyCard()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-90 transition-transform"><i data-lucide="x" class="w-5 h-5"></i></button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto pb-28 pt-8 px-5 flex flex-col items-center">
+    <div class="w-full max-w-[340px] bg-white rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden relative border border-gray-100">
+      <div class="absolute top-3 left-3 bg-[#FF0000] text-white text-[13px] font-bold px-3 py-1 rounded-full z-10 shadow-sm tracking-widest">分享</div>
+      <img id="ro-img" src="" class="w-full h-auto max-h-[220px] object-cover bg-gray-50">
+      <div class="p-6">
+        <h2 id="ro-title" class="text-[22px] font-black text-gray-800 leading-tight mb-3"></h2>
+        <p id="ro-desc" class="text-[14px] text-gray-500 whitespace-pre-wrap leading-relaxed mb-6"></p>
+        <div id="ro-buttons" class="space-y-2.5"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl border-t border-gray-100 p-4 pb-safe flex justify-center" style="z-index: 1060; box-shadow: 0 -10px 30px rgba(0,0,0,0.05);">
+    <button onclick="shareReadOnlyCardToLine(this)" class="w-[90%] py-4 bg-[#06C755] text-white rounded-2xl font-bold text-[17px] shadow-lg shadow-green-500/30 active:scale-95 transition-all flex items-center justify-center gap-2">
+      🚀 轉發名片至 LINE
+    </button>
+  </div>
+</div>
+
+<div id="toast" class="hidden fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all z-[10000] font-bold flex items-center gap-2 w-max max-w-[90vw] opacity-0 pointer-events-none border border-gray-700"></div>
+
+<script>
+  const LIFF_ID = "2008924519-RslRiLoO"; 
+  const WORKER_URL = "https://salesmemager.fangwl591021.workers.dev/"; 
+  const ADMIN_IDS = ["Uf729764dbb5b652a5a90a467320bea29", "U58eb5c1a747450140ce1335af709ae55", "U8932b891ad24da512afb9c1a6f41567b"];
+  
+  let globalCardContacts = [];
+  let currentUserProfile = null;
+  let currentActiveCard = null; 
+  let currentUserCard = null; 
+  let isAdminMode = false;
+  let isProcessing = false;   
+
+  lucide.createIcons();
+
+  window.showToast = function(msg, isError = false) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    const iconName = isError ? 'alert-circle' : 'info';
+    t.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4"></i> ${msg}`;
+    t.className = `fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all font-bold flex items-center gap-2 w-max max-w-[90vw] ${isError ? 'bg-red-500 text-white border-red-600' : 'bg-gray-800 text-white border-gray-700'} opacity-100 z-[10000]`;
+    t.classList.remove('hidden');
+    lucide.createIcons({ root: t });
+    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, -1rem)'; setTimeout(() => t.classList.add('hidden'), 300); }, 3000); 
+  };
+
+  window.onload = async () => {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      
+      const profile = await liff.getProfile();
+      currentUserProfile = profile;
+      isAdminMode = ADMIN_IDS.includes(profile.userId);
+
+      const initData = await fetchAPI('initApp', { 
+          userId: profile.userId, 
+          reqContacts: true, 
+          reqActivities: false 
+      });
+      
+      const userRes = initData.user || { isRegistered: false };
+      const contacts = initData.contacts || [];
+
+      if (!isAdminMode && !userRes.isRegistered) {
+          window.location.href = 'index.html';
+          return;
+      }
+
+      currentUserProfile.name = userRes.isRegistered ? (userRes.info['姓名'] || userRes.info.name) : profile.displayName;
+      currentUserProfile.industry = userRes.isRegistered ? (userRes.info['業種'] || userRes.info.industry) : '未知';
+
+      globalCardContacts = contacts;
+      
+      document.getElementById('view-loading').classList.add('hidden');
+      document.getElementById('view-main').classList.remove('hidden');
+      
+      let isMyCardPrivate = false;
+      currentUserCard = globalCardContacts.find(c => String(c['LINE ID']).trim() === profile.userId || String(c.userId).trim() === profile.userId);
+      
+      if (currentUserCard && currentUserCard['自訂名片設定']) {
+          try {
+              const conf = JSON.parse(currentUserCard['自訂名片設定']);
+              isMyCardPrivate = conf.isPrivate === true;
+          } catch(e) {}
+      }
+
+      const matchmakerUi = document.getElementById('matchmaker-ui');
+      const privacyLock = document.getElementById('privacy-lock-container');
+      const privacyToggle = document.getElementById('fate-privacy-toggle');
+
+      if (privacyToggle) {
+          privacyToggle.checked = !isMyCardPrivate;
+      }
+
+      if (isMyCardPrivate && !isAdminMode) {
+          if (matchmakerUi) matchmakerUi.classList.add('hidden');
+          if (privacyLock) privacyLock.classList.remove('hidden');
+      } else {
+          if (matchmakerUi) matchmakerUi.classList.remove('hidden');
+          if (privacyLock) privacyLock.classList.add('hidden');
+      }
+
+      if (isAdminMode) {
+          document.getElementById('bottom-nav-admin').classList.remove('hidden');
+          document.getElementById('admin-tools-container').classList.remove('hidden');
+          checkDatabaseStatus();
+      } else {
+          document.getElementById('bottom-nav-user').classList.remove('hidden');
+          const quotaDisplay = document.getElementById('quota-display');
+          if (quotaDisplay) quotaDisplay.classList.remove('hidden');
+          const quotaRemainingEl = document.getElementById('quota-remaining');
+          if (quotaRemainingEl && userRes.remainingFate !== undefined) {
+              quotaRemainingEl.innerText = userRes.remainingFate;
+          }
+      }
+      
+    } catch (err) {
+      showToast("初始化發生異常：" + err.message, true);
+    }
+  };
+
+  window.toggleFatePrivacy = async function(forcePublic = null) {
+      if (!currentUserCard) {
+          showToast("找不到您的名片資料，請先前往「設定」建立名片！", true);
+          const toggle = document.getElementById('fate-privacy-toggle');
+          if (toggle) toggle.checked = false;
+          return;
+      }
+
+      if (isProcessing) return;
+      isProcessing = true;
+
+      const toggle = document.getElementById('fate-privacy-toggle');
+      let isPublic = forcePublic !== null ? forcePublic : (toggle ? toggle.checked : true);
+
+      if (toggle) toggle.checked = isPublic;
+
+      let config = {};
+      if (currentUserCard['自訂名片設定']) {
+          try { config = JSON.parse(currentUserCard['自訂名片設定']); } catch(e){}
+      }
+
+      config.isPrivate = !isPublic;
+
+      try {
+          if (forcePublic) {
+              showToast("🔐 名片公開解鎖中...");
+          }
+
+          await fetchAPI('updateECardConfig', {
+              rowId: currentUserCard.rowId,
+              targetVerifyUid: currentUserCard['LINE ID'] || currentUserCard.userId || '',
+              targetVerifyName: currentUserCard['姓名'] || currentUserCard['Name'] || '',
+              config: config
+          });
+
+          currentUserCard['自訂名片設定'] = JSON.stringify(config);
+
+          const matchmakerUi = document.getElementById('matchmaker-ui');
+          const privacyLock = document.getElementById('privacy-lock-container');
+
+          if (!isPublic && !isAdminMode) {
+              if (matchmakerUi) matchmakerUi.classList.add('hidden');
+              if (privacyLock) privacyLock.classList.remove('hidden');
+          } else {
+              if (matchmakerUi) matchmakerUi.classList.remove('hidden');
+              if (privacyLock) privacyLock.classList.add('hidden');
+          }
+
+          showToast(isPublic ? "✅ 已公開名片，啟用 AI 配對" : "🔒 已隱藏名片，暫停配對功能");
+
+      } catch (err) {
+          showToast("更新失敗：" + err.message, true);
+          if (toggle) toggle.checked = !isPublic; 
+      } finally {
+          isProcessing = false;
+      }
+  }
+
+  async function fetchAPI(action, payload = {}, silent = false) {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+        // ⭐ CORS 繞過策略：強制使用 text/plain
+        const response = await fetch(WORKER_URL, {
+          method: 'POST', 
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action, payload }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const resText = await response.text();
+        let result;
+        try { 
+            result = JSON.parse(resText); 
+        } catch(e) { 
+            throw new Error(`伺服器回傳非預期格式:\n\n${resText.substring(0, 150)}`); 
+        }
+
+        if (!result.success) throw new Error(result.error);
+        return result.data;
+    } catch (err) {
+        if (err.name === 'AbortError') err.message = '連線已經超時 (45秒)，OpenAI 伺服器目前可能過載，請稍後再試。';
+        if (!silent) showToast(err.message, true);
+        throw err;
+    }
+  }
+
+  function checkDatabaseStatus() {
+      if (!Array.isArray(globalCardContacts)) return;
+      const missingContacts = globalCardContacts.filter(c => !c['個性'] || String(c['個性']).trim() === '' || String(c['個性']) === '待分析' || String(c['個性']) === 'undefined');
+      const missingCount = missingContacts.length;
+      
+      const totalEl = document.getElementById('total-count');
+      const missingEl = document.getElementById('missing-count');
+      const btnSync = document.getElementById('btn-sync-tags');
+      
+      if(totalEl) totalEl.innerText = globalCardContacts.length;
+      if(missingEl) missingEl.innerText = missingCount;
+      
+      if (missingCount > 0) {
+          if(btnSync) btnSync.classList.remove('hidden');
+      } else {
+          if(btnSync) btnSync.classList.add('hidden');
+      }
+  }
+
+  async function syncOldTags(forceAll = false) {
+      const targetContacts = forceAll 
+          ? globalCardContacts 
+          : globalCardContacts.filter(c => !c['個性'] || String(c['個性']).trim() === '' || String(c['個性']) === '待分析' || String(c['個性']) === 'undefined');
+          
+      if (targetContacts.length === 0) {
+          if(!forceAll) return;
+      }
+
+      const msg = forceAll 
+          ? `確定要強制重新運算【全庫 ${targetContacts.length} 張】名片的命理標籤嗎？\n\n(此操作會覆蓋所有舊標籤，全面套用最新的進階演算法)` 
+          : `系統發現 ${targetContacts.length} 張名片缺乏命理標籤。\n是否立即啟動 AI 批次補漏？`;
+
+      if (!confirm(msg + `\n\n(過程約需數十秒至數分鐘，請保持網頁開啟勿關閉)`)) return;
+
+      const btnSync = document.getElementById('btn-sync-tags');
+      const btnForce = document.getElementById('btn-force-recalc');
+      if(btnSync) btnSync.classList.add('pointer-events-none', 'opacity-50');
+      if(btnForce) btnForce.classList.add('pointer-events-none', 'opacity-50');
+      
+      const statusEl = document.getElementById('sync-status');
+
+      let successCount = 0;
+      
+      for (let i = 0; i < targetContacts.length; i++) {
+          const c = targetContacts[i];
+          statusEl.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin align-middle inline-block text-primary"></i> 正在${forceAll?'重算':'同步'} <b>${c['姓名'] || '未知'}</b> (${i + 1}/${targetContacts.length})...`;
+          lucide.createIcons({ root: statusEl });
+
+          try {
+              const mobileToUse = c['手機號碼'] || c['公司電話'] || '';
+              let bdayToUse = c['生日'] || ''; 
+
+              const uid = c['LINE ID'] || c.userId || c['Line ID'] || c.lineId || '';
+              if ((!bdayToUse || bdayToUse === 'Not provided') && uid) {
+                  try {
+                      const uRes = await fetchAPI('checkUser', { userId: uid }, true); 
+                      if (uRes && uRes.isRegistered && uRes.info) {
+                          let rawBday = uRes.info.birthday || uRes.info['生日'];
+                          if (rawBday) {
+                              const d = new Date(rawBday);
+                              if (!isNaN(d.getTime())) {
+                                  bdayToUse = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                              } else {
+                                  bdayToUse = rawBday;
+                              }
+                          }
+                      }
+                  } catch(e) { console.warn("Fetch user info failed", e); }
+              }
+              
+              const newTags = await fetchAPI('calculateFateTags', { Name: c['姓名'], Mobile: mobileToUse, Birthday: bdayToUse }, true);
+              
+              const fullPayload = {
+                  rowId: c.rowId,
+                  Name: c['姓名'] || '', 
+                  EnglishName: c['英文名/別名'] || '', 
+                  Title: c['職稱'] || '', 
+                  Department: c['部門'] || '',
+                  CompanyName: c['公司名稱'] || '', 
+                  TaxID: c['統一編號'] || '', 
+                  Mobile: c['手機號碼'] || '', 
+                  Tel: c['公司電話'] || '',
+                  Ext: c['分機'] || '', 
+                  Fax: c['傳真'] || '', 
+                  Address: c['公司地址'] || '', 
+                  Email: c['電子郵件'] || '', 
+                  Website: c['公司網址'] || '',
+                  SocialMedia: c['社群帳號'] || '', 
+                  Slogan: c['服務項目/品牌標語'] || '', 
+                  Notes: c['建檔人/備註'] || '',
+                  Birthday: bdayToUse, 
+                  Personality: newTags.Personality || '待分析',
+                  Hobbies: newTags.Hobbies || '待分析',
+                  Wealth: newTags.Wealth || '待分析',
+                  Health: newTags.Health || '待分析',
+                  Career: newTags.Career || '待分析'
+              };
+              
+              await fetchAPI('updateCard', fullPayload, true);
+              successCount++;
+              
+              c['個性'] = fullPayload.Personality;
+              c['興趣'] = fullPayload.Hobbies;
+              c['財運'] = fullPayload.Wealth;
+              c['健康'] = fullPayload.Health;
+              c['事業'] = fullPayload.Career;
+              c['生日'] = fullPayload.Birthday;
+              
+          } catch (err) {
+              console.error(`處理 ${c['姓名']} 失敗:`, err);
+              showToast(`處理「${c['姓名']}」時發生錯誤！\n${err.message}`, true);
+              break; 
+          }
+          
+          await new Promise(r => setTimeout(r, 1000));
+      }
+
+      if(btnSync) btnSync.classList.remove('pointer-events-none', 'opacity-50');
+      if(btnForce) btnForce.classList.remove('pointer-events-none', 'opacity-50');
+      
+      statusEl.innerHTML = `共 <span id="total-count" class="font-bold text-gray-700">0</span> 筆，缺漏 <span id="missing-count" class="text-red-500 font-bold">0</span> 筆`;
+      checkDatabaseStatus();
+      
+      if (successCount > 0) {
+          showToast(`✅ 作業結束！共成功${forceAll?'重算':'補算'} ${successCount} 張名片標籤。`);
+      }
+  }
+
+  async function startMatchmaking() {
+    const query = document.getElementById('search-query').value.trim();
+    if (!query) return showToast('請輸入您的業務需求！', true);
+
+    const container = document.getElementById('results-container');
+
+    if (globalCardContacts.length === 0) {
+        container.innerHTML = `<div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mt-4 text-center">
+            <i data-lucide="alert-triangle" class="text-amber-500 w-10 h-10 mb-2 mx-auto"></i>
+            <h3 class="text-amber-700 font-bold text-[15px]">目前名片通訊錄為空</h3>
+            <p class="text-amber-600 text-[13px]">請先由管理員建檔同步資料。</p>
+        </div>`;
+        lucide.createIcons({ root: container });
+        return;
+    }
+
+    const btn = document.getElementById('btn-match');
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> AI 深度分析中 (約需 15~30 秒)...';
+    lucide.createIcons({ root: btn });
+    btn.classList.add('pointer-events-none', 'opacity-70');
+    
+    container.innerHTML = '';
+
+    try {
+      if (!isAdminMode) {
+          const quotaRes = await fetchAPI('consumeFateQuota', { userId: currentUserProfile.userId });
+          const quotaRemainingEl = document.getElementById('quota-remaining');
+          if (quotaRemainingEl) quotaRemainingEl.innerText = quotaRes.remaining;
+      }
+
+      const publicContacts = globalCardContacts.filter(c => {
+          try {
+              if (c['自訂名片設定']) {
+                  const conf = JSON.parse(c['自訂名片設定']);
+                  if (conf.isPrivate === true) return false;
+              }
+          } catch(e){}
+          return true;
+      });
+
+      if (publicContacts.length === 0) {
+          throw new Error("目前配對池中沒有任何公開的名片可以進行搜尋。");
+      }
+
+      const slimContacts = publicContacts.map(c => ({
+          rowId: c.rowId,
+          Name: c['姓名'],
+          Company: c['公司名稱'],
+          Title: c['職稱'],
+          Industry: c['服務項目/品牌標語'],
+          Personality: c['個性'],
+          Hobbies: c['興趣'],
+          Wealth: c['財運'],
+          Health: c['健康'],
+          Career: c['事業']
+      }));
+
+      const matches = await fetchAPI('matchmakeContacts', {
+          currentUser: currentUserProfile || {},
+          query: query,
+          contacts: slimContacts
+      });
+
+      if (!matches || matches.length === 0) {
+          container.innerHTML = '<p class="text-center text-gray-400 mt-10 font-bold">目前資料庫沒有找到高度吻合的對象。</p>';
+      } else {
+          renderMatches(matches);
+      }
+
+    } catch (err) {
+      if (err.message && err.message.includes('額度已用盡')) {
+          showToast(err.message, true);
+          container.innerHTML = `<p class="text-center text-pink-500 mt-10 font-bold">${err.message}</p>`;
+      } else {
+          container.innerHTML = `
+          <div class="bg-red-50 border border-red-200 rounded-2xl p-5 mt-4 text-left animate-in zoom-in-95">
+              <div class="flex items-center gap-2 mb-2 text-red-700">
+                 <i data-lucide="alert-circle" class="w-8 h-8"></i>
+                 <h3 class="font-bold text-lg">系統發生錯誤</h3>
+              </div>
+              <div class="bg-white p-3 rounded border border-red-100 text-red-600 text-[12px] font-mono break-all max-h-[150px] overflow-y-auto mb-3">
+                  ${err.message}
+              </div>
+          </div>`;
+          lucide.createIcons({ root: container });
+      }
+    } finally {
+      btn.innerHTML = '<i data-lucide="wand-2" class="w-5 h-5"></i> 重新啟動媒合';
+      lucide.createIcons({ root: btn });
+      btn.classList.remove('pointer-events-none', 'opacity-70');
+    }
+  }
+
+  function renderMatches(matches) {
+    const container = document.getElementById('results-container');
+    
+    let htmlOutput = matches.map((match, idx) => {
+      const targetId = String(match.rowId).replace(/\D/g, ''); 
+      const contact = globalCardContacts.find(c => String(c.rowId) === String(match.rowId) || String(c.rowId) === targetId);
+      
+      if (!contact) return ''; 
+
+      let phoneStr = contact['手機號碼'] ? String(contact['手機號碼']).replace(/[^\d+]/g,'') : '';
+
+      return `
+      <div class="bg-white rounded-[1.5rem] shadow-sm border border-gray-100 p-5 animate-in fade-in slide-in-from-bottom-4" style="animation-delay: ${idx * 100}ms">
+        <div class="flex justify-between items-start mb-3">
+            <div>
+                <h3 class="text-lg font-black text-gray-800">${contact['姓名']}</h3>
+                <p class="text-xs text-gray-500 font-bold mt-0.5">${contact['公司名稱']} - ${contact['職稱']}</p>
+            </div>
+            <div class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm font-black shadow-sm">
+                ${match.score}% 契合
+            </div>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-xl mb-4 border border-gray-100 relative">
+            <i data-lucide="quote" class="absolute top-3 right-3 text-gray-200 w-8 h-8"></i>
+            <p class="text-[13px] text-gray-600 leading-relaxed font-medium relative z-10">${match.reason}</p>
+        </div>
+
+        <div class="flex gap-2">
+            ${phoneStr ? `<a href="tel:${phoneStr}" class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-bold text-[13px] text-center active:scale-95 transition-transform flex justify-center items-center gap-1"><i data-lucide="phone" class="w-4 h-4"></i> 聯絡</a>` : ''}
+            <button onclick="openWebCard('${contact.rowId}')" class="flex-1 py-2.5 bg-gray-800 text-white rounded-xl font-bold text-[13px] text-center active:scale-95 transition-transform flex justify-center items-center gap-1"><i data-lucide="contact" class="w-4 h-4"></i> 查看名片</button>
+        </div>
+      </div>
+      `;
+    }).join('');
+
+    if (!htmlOutput || htmlOutput.trim() === '') {
+        container.innerHTML = `
+        <div class="bg-red-50 border border-red-200 rounded-2xl p-5 mt-4 text-center">
+            <i data-lucide="alert-triangle" class="text-red-500 w-10 h-10 mb-2 mx-auto"></i>
+            <h3 class="text-red-700 font-bold text-[15px]">配對成功但無法顯示</h3>
+            <p class="text-red-600 text-[13px]">AI 推薦了名單，但在本地通訊錄中找不到對應的人選。這通常是暫時性的錯亂，請重新點擊配對。</p>
+        </div>`;
+    } else {
+        container.innerHTML = htmlOutput;
+    }
+    lucide.createIcons({ root: container });
+  }
+
+  function getDirectImageUrl(url) { 
+      if (!url) return url;
+      const driveMatch = url.match(/id=([a-zA-Z0-9_-]+)/) || url.match(/d\/([a-zA-Z0-9_-]+)/);
+      if (driveMatch && url.includes('drive.google.com')) {
+          return `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w1000`;
+      }
+      return url;
+  }
+
+  function getTrueAspectRatio(url) {
+      return new Promise((resolve) => {
+          if (!url) return resolve('20:13');
+          const img = new Image();
+          img.onload = function() {
+              let w = this.width; let h = this.height; let ratio = w / h;
+              if (ratio > 3) { w = 300; h = 100; }
+              else if (ratio < 0.334) { w = 100; h = 300; }
+              resolve(`${Math.round(w)}:${Math.round(h)}`);
+          };
+          img.onerror = function() { resolve('20:13'); };
+          img.src = url;
+      });
+  }
+
+  function openWebCard(rowId) {
+      const card = globalCardContacts.find(c => String(c.rowId) === String(rowId));
+      if (!card) return;
+      currentActiveCard = card;
+
+      let config = null;
+      if (card['自訂名片設定']) { try { config = JSON.parse(card['自訂名片設定']); } catch(e){} }
+
+      let rawImg = config?.imgUrl || card['名片圖檔'] || '';
+      if (!rawImg || typeof rawImg !== 'string' || !rawImg.startsWith('http')) {
+          rawImg = 'https://images.unsplash.com/photo-1616628188550-808682f3926d?w=800&q=80';
+      }
+      const imgUrl = getDirectImageUrl(rawImg);
+      
+      let cName = card['公司名稱'] && card['公司名稱'] !== 'Not provided' ? card['公司名稱'] : '';
+      let uName = card['姓名'] && card['姓名'] !== 'Not provided' ? card['姓名'] : '';
+      let defaultTitle = [cName, uName].filter(Boolean).join(' - ') || card['Name'] || '商務名片';
+      
+      let title = config?.title || defaultTitle;
+      let desc = config?.desc || card['服務項目/品牌標語'] || '歡迎點擊下方按鈕與我聯繫';
+      
+      title = title.replace(/Not provided/gi, '').replace(/未提供/g, '').trim();
+      desc = desc.replace(/Not provided/gi, '').replace(/未提供/g, '').trim();
+      if (!title) title = defaultTitle;
+      if (desc === 'Not provided') desc = '';
+      
+      let buttons = [];
+      if (config && config.buttons && config.buttons.length > 0) {
+          buttons = config.buttons;
+      }
+
+      document.getElementById('ro-img').src = imgUrl;
+      
+      const titleAlign = config?.titleAlign || 'center';
+      const titleEl = document.getElementById('ro-title');
+      titleEl.innerText = title;
+      titleEl.style.textAlign = titleAlign === 'start' ? 'left' : (titleAlign === 'end' ? 'right' : 'center');
+      
+      document.getElementById('ro-desc').innerText = desc;
+
+      const btnContainer = document.getElementById('ro-buttons');
+      btnContainer.innerHTML = buttons.map(b => `
+          <div class="w-full text-white text-[15px] font-bold text-center py-3.5 rounded-xl shadow-sm" style="background-color: ${b.c || '#06C755'}">${b.l}</div>
+      `).join('');
+
+      document.getElementById('readonly-card-modal').classList.remove('hidden');
+  }
+
+  function closeReadOnlyCard() {
+      document.getElementById('readonly-card-modal').classList.add('hidden');
+  }
+
+  function buildFlexMessageFromCard(card, config, dynamicAr = null) {
+    let imgUrl, imgActionUrl, imgSize, aspectMode, ar, title, desc, buttons = [];
+    let cardType = config?.cardType || 'image';
+    let videoUrl = config?.videoUrl || '';
+    let titleAlign = config?.titleAlign || 'center';
+    
+    let rawImg = config?.imgUrl || card['名片圖檔'] || '';
+    if (!rawImg || typeof rawImg !== 'string' || !rawImg.startsWith('http')) {
+        rawImg = 'https://images.unsplash.com/photo-1616628188550-808682f3926d?w=800&q=80';
+    }
+    imgUrl = getDirectImageUrl(rawImg);
+    
+    const myLiffId = (typeof LIFF_ID !== 'undefined') ? LIFF_ID : '2008924519-RslRiLoO';
+
+    if (config) {
+        imgActionUrl = config.imgActionUrl || `https://liff.line.me/${myLiffId}`;
+        imgSize = config.imgSize || 'mega';
+        aspectMode = config.aspectMode || 'cover';
+        ar = (config.ar === 'auto') ? (dynamicAr || '20:13') : (config.ar || '20:13');
+        title = config.title || '-';
+        desc = config.desc || '-'; 
+        buttons = config.buttons || [];
+    } else {
+        imgActionUrl = `https://liff.line.me/${myLiffId}`;
+        imgSize = 'mega';
+        aspectMode = 'cover';
+        ar = dynamicAr || '20:13';
+        
+        let cName = card['公司名稱'] && card['公司名稱'] !== 'Not provided' ? card['公司名稱'] : '';
+        let uName = card['姓名'] && card['姓名'] !== 'Not provided' ? card['姓名'] : '';
+        title = [cName, uName].filter(Boolean).join(' - ') || card['Name'] || '商務名片';
+        
+        let defaultDesc = card['服務項目/品牌標語'] || '';
+        if (defaultDesc === 'Not provided' || defaultDesc === '未提供') defaultDesc = '';
+        desc = defaultDesc || '歡迎點擊下方按鈕與我聯繫';
+
+        buttons = [];
+        let p1 = card['手機號碼'] || card['Mobile'];
+        if (p1) { let phone = String(p1).split(',')[0].replace(/[^\d+]/g, ''); if (phone.startsWith('886')) phone = '0' + phone.substring(3); if (phone) buttons.push({ l: '撥打手機', u: `tel:${phone}`, c: '#06C755' }); }
+        let p2 = card['公司電話'] || card['Tel'];
+        if (p2) { let tel = String(p2).split(',')[0].replace(/[^\d+]/g, ''); if (tel.startsWith('886')) tel = '0' + tel.substring(3); if (tel) buttons.push({ l: '撥打電話', u: `tel:${tel}`, c: '#06C755' }); }
+        let p3 = card['電子郵件'] || card['Email'];
+        if (p3) { let email = String(p3).split(/[\s,]+/)[0]; if (email.includes('@')) buttons.push({ l: '發送信箱', u: `mailto:${email}`, c: '#06C755' }); }
+        let p4 = card['公司地址'] || card['Address'];
+        if (p4) buttons.push({ l: 'Google 導航', u: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p4.split(',')[0])}`, c: '#06C755' });
+        let p5 = card['公司網址'] || card['Website'];
+        if (p5 && buttons.length < 4) { let wUrl = String(p5).trim(); if (wUrl && !wUrl.startsWith('http')) wUrl = 'https://' + wUrl; if (wUrl) buttons.push({ l: '公司網站', u: wUrl, c: '#06C755' }); }
+        buttons = buttons.slice(0, 4);
+    }
+
+    const validSizes = ['nano', 'micro', 'kilo', 'mega', 'giga'];
+    if (!validSizes.includes(imgSize)) imgSize = 'mega';
+    if (!/^\d+:\d+$/.test(ar)) ar = '20:13';
+
+    let safeImgActionUrl = imgActionUrl ? String(imgActionUrl).trim() : `https://liff.line.me/${myLiffId}`;
+    if (!safeImgActionUrl.match(/^(http|https|tel|mailto|line):/i)) { safeImgActionUrl = 'https://' + safeImgActionUrl; }
+
+    const btnContents = [];
+    for (let i=0; i<buttons.length; i++) {
+        let label = buttons[i].l ? String(buttons[i].l).trim() : '查看';
+        let safeU = buttons[i].u ? String(buttons[i].u).trim() : 'https://line.me';
+        let btnColor = buttons[i].c || '#06C755';
+        btnContents.push({ "type": "button", "style": "primary", "color": btnColor, "height": "sm", "margin": "sm", "action": { "type": "uri", "label": label.substring(0, 20), "uri": safeU.substring(0, 1000) } });
+    }
+
+    const badgeUrl = `https://liff.line.me/${myLiffId}/card.html?shareCardId=${card.rowId}`;
+
+    const headerBlock = {
+        "type": "box",
+        "layout": "horizontal",
+        "justifyContent": "flex-end",
+        "paddingAll": "8px",
+        "contents": [
+            {
+                "type": "box",
+                "layout": "vertical",
+                "justifyContent": "center",
+                "backgroundColor": "#FF0000",
+                "width": "65px",
+                "height": "25px",
+                "cornerRadius": "25px",
+                "contents": [
+                    { "type": "text", "text": "分享", "weight": "bold", "align": "center", "color": "#FFFFFF", "size": "xs" }
+                ],
+                "action": { "type": "uri", "label": "share", "uri": badgeUrl }
+            }
+        ]
+    };
+
+    let heroBlock;
+    if (cardType === 'video' && videoUrl && videoUrl.match(/^https:\/\//i)) {
+        heroBlock = {
+            "type": "video",
+            "url": videoUrl,
+            "previewUrl": imgUrl,
+            "altContent": { "type": "image", "size": "full", "aspectRatio": ar, "aspectMode": aspectMode, "url": imgUrl },
+            "aspectRatio": ar
+        };
+    } else {
+        heroBlock = {
+            "type": "image",
+            "url": imgUrl,
+            "size": "full",
+            "aspectRatio": ar,
+            "aspectMode": aspectMode,
+            "action": { "type": "uri", "label": "cover", "uri": safeImgActionUrl.substring(0, 1000) }
+        };
+    }
+
+    const flexContents = {
+        "type": "bubble", 
+        "size": imgSize,
+        "header": headerBlock,
+        "hero": heroBlock,
+        "body": {
+            "type": "box", "layout": "vertical", "paddingAll": "0px",
+            "contents": [
+                { 
+                    "type": "box", "layout": "vertical", "paddingAll": "10px", 
+                    "contents": [ 
+                        { "type": "text", "text": title, "weight": "bold", "size": "xl", "align": titleAlign, "wrap": true }, 
+                        { "type": "text", "text": desc, "size": "sm", "margin": "md", "color": "#666666", "wrap": true } 
+                    ] 
+                }
+            ]
+        }
+    };
+    
+    if (btnContents.length > 0) {
+        flexContents.footer = { "type": "box", "layout": "vertical", "spacing": "sm", "paddingAll": "10px", "paddingTop": "0px", "backgroundColor": "#FFFFFF", "contents": btnContents };
+    }
+    return flexContents;
+  }
+
+  const triggerFlexSharing = async (flexContents, altText) => {
+      if (!liff.isLoggedIn()) { liff.login({ redirectUri: window.location.href }); return; }
+      try {
+          const message = { type: "flex", altText: altText || "您收到一張數位名片", contents: flexContents };
+          const res = await liff.shareTargetPicker([message]);
+          if (res) showToast('🚀 數位名片已成功轉發！');
+          setTimeout(() => liff.closeWindow(), 1500);
+      } catch (error) {
+          if (error.message && error.message.includes('not allowed')) {
+              showToast("⚠️ 系統權限已更新！即將為您重新登入以獲取最新權限。", true);
+              setTimeout(() => { liff.logout(); window.location.reload(); }, 2000);
+          } else {
+              showToast('發送取消或發生未知錯誤', true);
+          }
+      }
+  };
+
+  async function shareReadOnlyCardToLine(btnEl) {
+       const btnShare = btnEl || document.querySelector('#readonly-card-modal button:last-child');
+       let originalHTML = '';
+       if (btnShare) {
+           originalHTML = btnShare.innerHTML;
+           btnShare.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> 處理中...';
+           lucide.createIcons({ root: btnShare });
+           btnShare.classList.add('pointer-events-none', 'opacity-70');
+       }
+
+       try {
+           let config = null;
+           if (currentActiveCard['自訂名片設定']) { try { config = JSON.parse(currentActiveCard['自訂名片設定']); } catch(e){} }
+           
+           let rawImg = config?.imgUrl || currentActiveCard['名片圖檔'] || '';
+           if (!rawImg || !rawImg.startsWith('http')) {
+               rawImg = 'https://images.unsplash.com/photo-1616628188550-808682f3926d?w=800&q=80';
+           }
+           const currentImgUrl = getDirectImageUrl(rawImg);
+           const detectedAr = await getTrueAspectRatio(currentImgUrl);
+           const flexMessageObj = buildFlexMessageFromCard(currentActiveCard, config, detectedAr);
+           
+           const altText = (config && config.altText) ? config.altText : '這是我的電子名片，請多指教';
+
+           await triggerFlexSharing(flexMessageObj, altText);
+       } catch(err) {
+           showToast("發生錯誤：" + err.message, true);
+       } finally {
+           if (btnShare) {
+               btnShare.innerHTML = originalHTML;
+               btnShare.classList.remove('pointer-events-none', 'opacity-70');
+           }
+       }
+  }
+
+  window.fallbackShare = function(url, altText) {
+      const fullText = `${altText}\n${url}`;
+      const fallbackInput = document.createElement('textarea');
+      fallbackInput.value = fullText;
+      fallbackInput.style.position = 'fixed'; fallbackInput.style.opacity = '0';
+      document.body.appendChild(fallbackInput);
+      fallbackInput.focus(); fallbackInput.select();
+      try {
+          document.execCommand('copy');
+          showToast("✅ 已複製專屬連結！\n電腦版請直接貼上給好友。", true);
+      } catch(err) {
+          showToast("請手動複製網址分享", true);
+      }
+      document.body.removeChild(fallbackInput);
+      setTimeout(() => {
+          window.open(`https://line.me/R/share?text=${encodeURIComponent(fullText)}`, '_blank');
+      }, 1500);
+  };
+</script>
+</body>
+</html>
