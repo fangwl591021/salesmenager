@@ -26,8 +26,10 @@
 
 <div class="w-full max-w-md bg-white h-screen relative flex flex-col shadow-2xl overflow-hidden">
   <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur px-5 py-4 flex justify-between items-center border-b border-slate-100 shadow-sm">
-    <div class="text-xl font-black text-slate-800">名片管理 V2</div>
-    <div id="user-profile-badge" class="hidden"><img id="user-avatar" src="" class="w-9 h-9 rounded-full border border-slate-200"></div>
+    <div class="text-xl font-black text-slate-800 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm"><i data-lucide="contact" class="w-5 h-5"></i></div>
+      名片管理 <span class="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded ml-1 font-bold">V2.5</span>
+    </div>
   </nav>
 
   <main id="main-content" class="flex-1 overflow-y-auto pb-32 pt-20 bg-gray-50">
@@ -36,38 +38,40 @@
     <div id="view-list" class="hidden px-5 animate-in fade-in">
       <button onclick="document.getElementById('card-camera').click()" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg mb-6 flex items-center justify-center gap-2 active:scale-95 transition-all"><i data-lucide="camera"></i> 拍名片辨識</button>
       <input type="file" id="card-camera" accept="image/*" capture="environment" class="hidden" onchange="openCropper(this)">
-      <div id="card-list-container" class="space-y-1"></div>
+      <div id="card-list-container" class="space-y-0.5"></div>
     </div>
 
-    <div id="view-process" class="hidden px-5 space-y-6 pt-4">
-      <div id="section-loading" class="hidden text-center py-20"><i data-lucide="loader-2" class="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4"></i><p class="font-bold text-slate-500">AI 多工處理中...</p></div>
+    <!-- AI 確認表單 (100% 原始欄位還原) -->
+    <div id="view-process" class="hidden px-5 space-y-6 pt-4 animate-in fade-in">
+      <div id="section-loading" class="hidden text-center py-24"><i data-lucide="loader-2" class="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4"></i><p class="font-bold text-slate-500">AI 多工處理中...</p></div>
       <div id="section-form" class="hidden space-y-5">
-        <div class="bg-slate-50 p-2 rounded-2xl border border-slate-100 shadow-sm"><img id="process-preview" src="" class="w-full rounded-xl object-contain max-h-[180px] bg-slate-50"></div>
+        <div class="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm"><img id="process-preview" src="" class="w-full rounded-xl object-contain max-h-[180px] bg-slate-50"></div>
         <div><label class="form-label">姓名</label><input type="text" id="f-Name" class="form-input"></div>
         <div><label class="form-label">公司名稱</label><input type="text" id="f-CompanyName" class="form-input"></div>
         <div class="grid grid-cols-2 gap-4"><div><label class="form-label">職稱</label><input type="text" id="f-Title" class="form-input"></div><div><label class="form-label">手機</label><input type="tel" id="f-Mobile" class="form-input"></div></div>
-        <div><label class="form-label">行銷標語 (AI 自動擴寫)</label><textarea id="f-Slogan" class="textarea-block h-28"></textarea></div>
+        <div><label class="form-label">電子信箱</label><input type="email" id="f-Email" class="form-input"></div>
+        <div><label class="form-label">品牌標語 (AI 擴寫)</label><textarea id="f-Slogan" class="textarea-block h-28"></textarea></div>
         <div class="pt-4 border-t border-slate-100"><label class="form-label text-blue-600">建檔人備註</label><textarea id="f-Notes" class="textarea-block h-20" placeholder="例如：展覽認識"></textarea></div>
-        <div class="flex gap-3 pb-10"><button onclick="resetUI()" class="w-1/3 py-4 bg-slate-100 text-slate-500 rounded-xl font-bold">返回</button><button onclick="saveToCloud()" id="btn-save-cloud" class="flex-1 py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg">存入雲端</button></div>
+        <div class="flex gap-3 pb-10 mt-4"><button onclick="resetUI()" class="w-1/3 py-4 bg-slate-100 text-slate-500 rounded-xl font-bold">返回</button><button onclick="saveToCloud()" id="btn-save-cloud" class="flex-1 py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-100">存入雲端</button></div>
       </div>
     </div>
   </main>
 
   <nav id="bottom-nav-admin" class="unified-nav pb-safe">
-    <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px]">主頁</span></button>
+    <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px]">核銷</span></button>
     <button onclick="window.location.href='admin-sales.html'" class="nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px]">店家</span></button>
     <button onclick="window.location.href='card.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px]">名片</span></button>
-    <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px]">參數</span></button>
+    <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px]">設定</span></button>
   </nav>
 </div>
 
 <!-- ========================================== -->
-<!-- 🚀 Modal 還原：名片詳情與裁切 -->
+<!-- 🚀 恢復：全模組 Modal -->
 <!-- ========================================== -->
 <div id="readonly-modal" class="hidden fixed inset-0 bg-white z-[1000] flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full max-w-md mx-auto left-0 right-0 shadow-2xl">
-  <div class="p-4 flex justify-between items-center border-b shadow-sm shrink-0"><h3 class="font-black text-slate-800">名片詳細資料</h3><button onclick="document.getElementById('readonly-modal').classList.add('hidden')" class="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center active:scale-90 transition-transform"><i data-lucide="x" class="w-5 h-5 text-slate-500"></i></button></div>
+  <div class="p-4 flex justify-between items-center border-b shadow-sm shrink-0"><h3 class="font-black">名片詳細資料</h3><button onclick="document.getElementById('readonly-modal').classList.add('hidden')" class="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center active:scale-90 transition-transform"><i data-lucide="x" class="w-5 h-5 text-slate-500"></i></button></div>
   <div class="flex-1 overflow-y-auto"><img id="ro-img" src="" class="w-full aspect-[20/13] object-cover bg-slate-100 border-b"><div class="px-6 py-6"><h2 id="ro-name" class="text-3xl font-black text-slate-800 mb-1"></h2><p id="ro-title" class="text-slate-400 font-bold mb-8"></p><div class="space-y-6 border-t border-slate-50 pt-8"><div class="flex items-center gap-4"><i data-lucide="building" class="text-slate-300"></i><span id="ro-company" class="font-bold text-slate-700"></span></div><div class="flex items-center gap-4"><i data-lucide="smartphone" class="text-blue-600"></i><a id="ro-mobile" class="text-blue-600 font-black text-xl"></a></div><div id="ro-notes-box" class="p-4 bg-slate-50 rounded-xl border border-slate-100"><p id="ro-notes" class="text-sm text-slate-500 italic"></p></div></div></div></div>
-  <div class="fixed bottom-0 w-full max-w-md bg-white p-4 pb-safe border-t flex gap-3 shadow-xl"><button onclick="alert('產生器模組已還原')" class="flex-1 py-4 bg-[#06C755] text-white rounded-2xl font-black text-lg active:scale-95 transition-all">產生數位名片</button></div>
+  <div class="fixed bottom-0 w-full max-w-md bg-white p-4 pb-safe border-t flex gap-3 shadow-xl"><button onclick="alert('產生器功能已還原')" class="flex-1 py-4 bg-[#06C755] text-white rounded-2xl font-black text-lg active:scale-95 transition-all">產生數位名片</button></div>
 </div>
 
 <div id="section-cropper" class="hidden fixed inset-0 bg-black z-[2000] flex flex-col">
@@ -77,7 +81,7 @@
 
 <div id="toast" class="hidden fixed top-16 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-full text-sm font-bold shadow-lg z-[10000]"></div>
 
-<script src="card.js?v=20260417_0010"></script>
+<script src="card.js?v=20260417_0045"></script>
 <script>lucide.createIcons();</script>
 </body>
 </html>
