@@ -103,7 +103,7 @@
                 }
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) {
-                    liff.login();
+                    liff.login({ redirectUri: window.location.href });
                     return;
                 }
                 const profile = await liff.getProfile();
@@ -164,7 +164,7 @@
 
         function showToast(msg) {
             const toast = document.createElement('div');
-            toast.className = 'fixed top-16 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg z-[100] text-sm font-medium transition-all duration-300';
+            toast.className = 'fixed top-16 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg z-[100] text-sm font-medium transition-all duration-300';
             toast.innerText = msg;
             document.body.appendChild(toast);
             setTimeout(() => {
@@ -178,8 +178,6 @@
                 showToast("此裝置或預覽模式不支援分享功能");
                 return;
             }
-            // 呼叫 liff-share.js 的分享邏輯
-            // 此處僅為示範，後續會整合你的 card-ecard 邏輯
             console.log("觸發分享電子名片");
         }
 
