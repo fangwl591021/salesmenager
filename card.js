@@ -3,7 +3,7 @@
  * Version: v2.1.0 (V2 升級版：修正 Worker 網址，全面套用 Lucide 圖示與 Gray 色階，維持樂觀渲染)
  */
 const LIFF_ID = "2008924519-RslRiLoO"; 
-const WORKER_URL = "https://salesmenager.fangwl591021.workers.dev/"; 
+const WORKER_URL = "https://salesmemager.fangwl591021.workers.dev/"; 
 const CACHE_KEY_CONTACTS = "app_cache_card_contacts_v1";
 
 let compressedBase64 = "";
