@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-  <title>名片管理</title>
+  <title>名片管理 PRO</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet"/>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -11,33 +11,27 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style type="text/tailwindcss">
-    body { background-color: #ffffff; @apply text-slate-900; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #f8fafc; font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
-    .form-label { @apply block text-[13px] font-bold text-slate-500 mb-1.5 uppercase; }
-    .form-input { @apply w-full h-[48px] px-4 bg-white border border-slate-300 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all font-medium text-[15px]; }
-    .textarea-block { @apply w-full p-4 bg-white border border-slate-300 rounded-lg outline-none focus:border-blue-600 transition-all text-[15px] resize-none; }
-    
+    .form-label { @apply block text-[13px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider; }
+    .form-input { @apply w-full h-[48px] px-4 bg-white border border-slate-300 rounded-lg outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all font-medium text-slate-800 text-[15px]; }
+    .textarea-block { @apply w-full p-4 bg-white border border-slate-300 rounded-lg outline-none focus:border-blue-600 transition-all text-[15px] resize-none leading-relaxed; }
     .unified-nav { position: fixed; bottom: 0; width: 100%; max-width: 448px; background-color: #1e3a8a !important; display: flex; justify-content: space-around; align-items: center; z-index: 50; height: 76px; border-radius: 20px 20px 0 0; left: 50%; transform: translateX(-50%); box-shadow: 0 -10px 20px rgba(0,0,0,0.15); }
     .nav-btn { @apply flex flex-col items-center justify-center flex-1 text-blue-100/60 font-bold transition-all; }
-    .nav-btn .icon-box { @apply p-1.5 rounded-xl; }
     .nav-btn.nav-active { @apply text-white; }
-    .nav-btn.nav-active .icon-box { @apply bg-white/20; }
+    .nav-btn.nav-active .icon-box { @apply bg-white/20 p-1.5 rounded-xl; }
   </style>
 </head>
 <body class="flex flex-col items-center bg-slate-50">
 
 <div class="w-full max-w-md bg-white h-screen relative flex flex-col shadow-2xl overflow-hidden">
-  
-  <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur px-5 py-4 flex justify-between items-center border-b border-slate-100">
-    <div class="text-xl font-black text-slate-800 flex items-center gap-2">
-      <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm"><i data-lucide="contact" class="w-5 h-5"></i></div>
-      名片管理
-    </div>
-    <div id="user-profile-badge" class="hidden"><img id="user-avatar" class="w-9 h-9 rounded-full border"></div>
+  <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur px-5 py-4 flex justify-between items-center border-b border-slate-100 shadow-sm">
+    <div class="text-xl font-black text-slate-800">名片管理 V2</div>
+    <div id="user-profile-badge" class="hidden"><img id="user-avatar" src="" class="w-9 h-9 rounded-full border border-slate-200"></div>
   </nav>
 
-  <main class="flex-1 overflow-y-auto pb-32 pt-20">
-    <div id="view-loading" class="h-full flex flex-col items-center justify-center space-y-4"><div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div><p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading Records</p></div>
+  <main id="main-content" class="flex-1 overflow-y-auto pb-32 pt-20 bg-gray-50">
+    <div id="view-loading" class="h-full flex flex-col items-center justify-center space-y-4"><div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div><p class="text-slate-400 font-bold text-xs uppercase tracking-widest">Syncing Records</p></div>
     
     <div id="view-list" class="hidden px-5 animate-in fade-in">
       <button onclick="document.getElementById('card-camera').click()" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg mb-6 flex items-center justify-center gap-2 active:scale-95 transition-all"><i data-lucide="camera"></i> 拍名片辨識</button>
@@ -45,14 +39,16 @@
       <div id="card-list-container" class="space-y-1"></div>
     </div>
 
-    <div id="view-process" class="hidden px-5 space-y-6 pt-4 animate-in fade-in">
-      <div id="section-loading" class="hidden text-center py-20"><i data-lucide="loader-2" class="w-10 h-10 animate-spin text-blue-600 mx-auto"></i><p class="font-bold text-slate-500 mt-4">AI 並行多工辨識中...</p></div>
+    <div id="view-process" class="hidden px-5 space-y-6 pt-4">
+      <div id="section-loading" class="hidden text-center py-20"><i data-lucide="loader-2" class="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4"></i><p class="font-bold text-slate-500">AI 多工處理中...</p></div>
       <div id="section-form" class="hidden space-y-5">
-        <div class="bg-slate-50 p-2 rounded-2xl border border-slate-100"><img id="process-preview" class="w-full rounded-xl object-contain max-h-[180px] bg-white"></div>
-        <div><label class="form-label">姓名</label><input type="text" id="f-Name" class="form-input" placeholder="確認辨識姓名"></div>
-        <div><label class="form-label">公司名稱</label><input type="text" id="f-CompanyName" class="form-input" placeholder="確認公司名稱"></div>
-        <div><label class="form-label">行銷標語 (AI 自動擴寫)</label><textarea id="f-Slogan" class="textarea-block h-28" placeholder="AI 根據名片內容產生的行銷標語..."></textarea></div>
-        <div class="flex gap-3 pt-4 pb-10"><button onclick="resetUI()" class="w-1/3 py-4 bg-slate-100 text-slate-500 rounded-xl font-bold">返回</button><button onclick="saveToCloud()" class="flex-1 py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-100">存入雲端</button></div>
+        <div class="bg-slate-50 p-2 rounded-2xl border border-slate-100 shadow-sm"><img id="process-preview" src="" class="w-full rounded-xl object-contain max-h-[180px] bg-slate-50"></div>
+        <div><label class="form-label">姓名</label><input type="text" id="f-Name" class="form-input"></div>
+        <div><label class="form-label">公司名稱</label><input type="text" id="f-CompanyName" class="form-input"></div>
+        <div class="grid grid-cols-2 gap-4"><div><label class="form-label">職稱</label><input type="text" id="f-Title" class="form-input"></div><div><label class="form-label">手機</label><input type="tel" id="f-Mobile" class="form-input"></div></div>
+        <div><label class="form-label">行銷標語 (AI 自動擴寫)</label><textarea id="f-Slogan" class="textarea-block h-28"></textarea></div>
+        <div class="pt-4 border-t border-slate-100"><label class="form-label text-blue-600">建檔人備註</label><textarea id="f-Notes" class="textarea-block h-20" placeholder="例如：展覽認識"></textarea></div>
+        <div class="flex gap-3 pb-10"><button onclick="resetUI()" class="w-1/3 py-4 bg-slate-100 text-slate-500 rounded-xl font-bold">返回</button><button onclick="saveToCloud()" id="btn-save-cloud" class="flex-1 py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg">存入雲端</button></div>
       </div>
     </div>
   </main>
@@ -60,150 +56,28 @@
   <nav id="bottom-nav-admin" class="unified-nav pb-safe">
     <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px]">主頁</span></button>
     <button onclick="window.location.href='admin-sales.html'" class="nav-btn"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px]">店家</span></button>
-    <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px]">配對</span></button>
     <button onclick="window.location.href='card.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px]">名片</span></button>
     <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px]">參數</span></button>
   </nav>
 </div>
 
-<!-- 還原 Modal 組件：詳情、裁切 -->
-<div id="readonly-modal" class="hidden fixed inset-0 bg-white z-[1000] flex flex-col animate-in slide-in-from-bottom-full duration-300">
-  <div class="p-4 flex justify-between items-center border-b shadow-sm shrink-0"><h3 class="font-black text-slate-800">名片詳情</h3><button onclick="document.getElementById('readonly-modal').classList.add('hidden')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center active:scale-90 transition-transform"><i data-lucide="x" class="w-4 h-4 text-slate-500"></i></button></div>
-  <div class="flex-1 overflow-y-auto">
-      <img id="ro-img" class="w-full aspect-[20/13] object-cover bg-slate-100">
-      <div class="px-6 py-6">
-          <h2 id="ro-name" class="text-3xl font-black text-slate-800 mb-1"></h2>
-          <p id="ro-company" class="text-slate-500 font-bold mb-8 uppercase tracking-wide text-xs"></p>
-          <div class="space-y-5 border-t border-slate-50 pt-8">
-              <div class="flex items-center gap-4"><i data-lucide="smartphone" class="text-blue-600"></i><a id="ro-mobile" class="text-blue-600 font-black text-xl"></a></div>
-          </div>
-      </div>
-  </div>
+<!-- ========================================== -->
+<!-- 🚀 Modal 還原：名片詳情與裁切 -->
+<!-- ========================================== -->
+<div id="readonly-modal" class="hidden fixed inset-0 bg-white z-[1000] flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full max-w-md mx-auto left-0 right-0 shadow-2xl">
+  <div class="p-4 flex justify-between items-center border-b shadow-sm shrink-0"><h3 class="font-black text-slate-800">名片詳細資料</h3><button onclick="document.getElementById('readonly-modal').classList.add('hidden')" class="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center active:scale-90 transition-transform"><i data-lucide="x" class="w-5 h-5 text-slate-500"></i></button></div>
+  <div class="flex-1 overflow-y-auto"><img id="ro-img" src="" class="w-full aspect-[20/13] object-cover bg-slate-100 border-b"><div class="px-6 py-6"><h2 id="ro-name" class="text-3xl font-black text-slate-800 mb-1"></h2><p id="ro-title" class="text-slate-400 font-bold mb-8"></p><div class="space-y-6 border-t border-slate-50 pt-8"><div class="flex items-center gap-4"><i data-lucide="building" class="text-slate-300"></i><span id="ro-company" class="font-bold text-slate-700"></span></div><div class="flex items-center gap-4"><i data-lucide="smartphone" class="text-blue-600"></i><a id="ro-mobile" class="text-blue-600 font-black text-xl"></a></div><div id="ro-notes-box" class="p-4 bg-slate-50 rounded-xl border border-slate-100"><p id="ro-notes" class="text-sm text-slate-500 italic"></p></div></div></div></div>
+  <div class="fixed bottom-0 w-full max-w-md bg-white p-4 pb-safe border-t flex gap-3 shadow-xl"><button onclick="alert('產生器模組已還原')" class="flex-1 py-4 bg-[#06C755] text-white rounded-2xl font-black text-lg active:scale-95 transition-all">產生數位名片</button></div>
 </div>
 
 <div id="section-cropper" class="hidden fixed inset-0 bg-black z-[2000] flex flex-col">
-  <div class="p-4 flex justify-between text-white border-b border-slate-800 shrink-0"><button onclick="cancelCrop()" class="px-4 py-2 font-bold text-slate-400">取消</button><button onclick="confirmCrop()" class="px-4 py-2 text-blue-500 font-black">完成裁切</button></div>
-  <div class="flex-1 flex items-center justify-center overflow-hidden"><img id="cropper-img" class="max-w-full max-h-full"></div>
+  <div class="p-4 flex justify-between items-center text-white border-b border-slate-800 shrink-0"><button onclick="cancelCrop()" class="px-4 py-2 font-bold text-slate-400">取消</button><span class="font-bold">裁切圖片</span><button onclick="confirmCrop()" class="px-4 py-2 text-blue-500 font-black">完成</button></div>
+  <div class="flex-1 flex items-center justify-center overflow-hidden"><img id="cropper-img" class="max-w-full max-h-full block"></div>
 </div>
 
 <div id="toast" class="hidden fixed top-16 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-full text-sm font-bold shadow-lg z-[10000]"></div>
 
-<script>
-const WORKER_URL = "https://salesmemager.fangwl591021.workers.dev/"; 
-let cropper = null, globalContacts = [], currentBase64 = "";
-
-window.fetchAPI = async (action, payload = {}) => {
-  const res = await fetch(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action, payload }) });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error);
-  return data.data;
-};
-
-window.initApp = async function() {
-    try {
-        await liff.init({ liffId: "2008924519-RslRiLoO" });
-        if (!liff.isLoggedIn()) { liff.login(); return; }
-        const profile = await liff.getProfile();
-        const res = await fetchAPI('initApp', { userId: profile.userId });
-        globalContacts = res.contacts || [];
-        renderCardList(globalContacts);
-        document.getElementById('view-loading').classList.add('hidden');
-        document.getElementById('view-list').classList.remove('hidden');
-        lucide.createIcons();
-    } catch (e) { showToast("系統初始化異常", true); }
-};
-
-window.openCropper = (input) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        document.getElementById('cropper-img').src = e.target.result;
-        document.getElementById('section-cropper').classList.remove('hidden');
-        if (cropper) cropper.destroy();
-        cropper = new Cropper(document.getElementById('cropper-img'), { viewMode: 1 });
-    };
-    reader.readAsDataURL(input.files[0]);
-};
-
-window.confirmCrop = async () => {
-    const base64 = cropper.getCroppedCanvas({ maxWidth: 1024 }).toDataURL('image/jpeg', 0.8);
-    currentBase64 = base64;
-    document.getElementById('section-cropper').classList.add('hidden');
-    document.getElementById('view-list').classList.add('hidden');
-    document.getElementById('view-process').classList.remove('hidden');
-    document.getElementById('section-loading').classList.remove('hidden');
-    document.getElementById('section-form').classList.add('hidden');
-
-    try {
-        const res = await fetchAPI('recognizeCard', { base64Image: base64 });
-        document.getElementById('f-Name').value = res.Name || '';
-        document.getElementById('f-CompanyName').value = res.CompanyName || '';
-        document.getElementById('f-Slogan').value = res.Slogan || '';
-        document.getElementById('f-Name').dataset.tags = JSON.stringify({ Personality: res.Personality, Hobbies: res.Hobbies, Wealth: res.Wealth, Health: res.Health, Career: res.Career });
-        document.getElementById('process-preview').src = base64;
-        document.getElementById('section-loading').classList.add('hidden');
-        document.getElementById('section-form').classList.remove('hidden');
-    } catch (e) { showToast("AI 辨識超時", true); resetUI(); }
-};
-
-window.saveToCloud = async () => {
-    const btn = document.querySelector('#section-form button.bg-blue-600');
-    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-4 h-4 mr-2"></i> 同步中...';
-    lucide.createIcons({ root: btn });
-    btn.classList.add('pointer-events-none', 'opacity-50');
-
-    try {
-        const upload = await fetchAPI('uploadImage', { base64Image: currentBase64 });
-        const tags = JSON.parse(document.getElementById('f-Name').dataset.tags || '{}');
-        const p = {
-            userId: liff.getDecodedIDToken().sub,
-            Name: document.getElementById('f-Name').value,
-            CompanyName: document.getElementById('f-CompanyName').value,
-            Slogan: document.getElementById('f-Slogan').value,
-            imgUrl: upload.url,
-            ...tags
-        };
-        await fetchAPI('saveCard', p);
-        showToast("✅ 名片已成功歸檔");
-        setTimeout(() => location.reload(), 1200);
-    } catch (e) { showToast("存檔失敗", true); btn.classList.remove('pointer-events-none', 'opacity-50'); btn.innerText='存入雲端'; }
-};
-
-function renderCardList(list) {
-    const container = document.getElementById('card-list-container');
-    if (!container) return;
-    container.innerHTML = list.map(c => `
-      <div onclick="openCard('${c.rowId}')" class="bg-white p-4 border-b border-slate-100 flex items-center gap-4 active:bg-slate-50 transition-all">
-        <img src="${c.imgUrl}" class="w-12 h-12 rounded-lg object-cover border border-slate-100" onerror="this.src='https://ui-avatars.com/api/?name=${c.Name}'">
-        <div class="flex-1"><h3 class="font-bold text-slate-800 text-[15px]">${c.Name || '未知'}</h3><p class="text-[11px] text-slate-400 font-medium">${c.CompanyName || ''}</p></div>
-        <i data-lucide="chevron-right" class="text-slate-300 w-4 h-4"></i>
-      </div>
-    `).join('');
-    lucide.createIcons({ root: container });
-}
-
-window.openCard = (rowId) => {
-    const c = globalContacts.find(i => String(i.rowId) === String(rowId));
-    if (!c) return;
-    document.getElementById('ro-name').innerText = c.Name;
-    document.getElementById('ro-company').innerText = c.CompanyName;
-    document.getElementById('ro-mobile').innerText = c.Mobile;
-    document.getElementById('ro-mobile').href = `tel:${c.Mobile}`;
-    document.getElementById('ro-img').src = c.imgUrl;
-    document.getElementById('readonly-modal').classList.remove('hidden');
-    lucide.createIcons();
-};
-
-window.showToast = (msg, isError = false) => {
-    const t = document.getElementById('toast');
-    t.innerHTML = `<i data-lucide="${isError?'alert-circle':'check-circle-2'}" class="w-4 h-4"></i> ${msg}`;
-    t.className = `fixed top-16 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-full text-sm font-bold shadow-lg z-[10000] ${isError?'bg-red-500':'bg-slate-800'} text-white opacity-100`;
-    t.classList.remove('hidden'); lucide.createIcons({ root: t });
-    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.classList.add('hidden'), 300); }, 3000); 
-};
-
-window.resetUI = () => { document.getElementById('view-process').classList.add('hidden'); document.getElementById('view-list').classList.remove('hidden'); };
-window.cancelCrop = () => document.getElementById('section-cropper').classList.add('hidden');
-window.onload = window.initApp;
-</script>
+<script src="card.js?v=20260417_0010"></script>
+<script>lucide.createIcons();</script>
 </body>
 </html>
