@@ -3,97 +3,267 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-  <title>店家管理中心</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+  <title>店家審核</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet"/>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    body { background-color: #f8fafc; font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
-    .unified-nav { position: fixed; bottom: 0; width: 100%; max-width: 448px; background-color: #1e3a8a !important; display: flex; justify-content: space-around; align-items: center; z-index: 50; height: 76px; border-radius: 20px 20px 0 0; left: 50%; transform: translateX(-50%); box-shadow: 0 -10px 20px rgba(0,0,0,0.15); }
-    .nav-btn { @apply flex flex-col items-center justify-center flex-1 text-blue-100/60 font-bold transition-all; }
-    .nav-btn.nav-active { @apply text-white; }
-    .nav-btn.nav-active .icon-box { @apply bg-white/20 p-1.5 rounded-xl; }
-    .list-item { @apply flex items-center gap-4 px-5 py-4 bg-white border-b border-slate-100 active:bg-slate-50 transition-colors; }
-    .section-header { @apply px-5 py-3 bg-slate-50 text-[12px] font-bold text-slate-400 uppercase tracking-widest flex justify-between; }
+
+  <script id="tailwind-config">
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#2563eb", 
+            background: "#ffffff",
+            "text-main": "#0f172a",
+          },
+          fontFamily: {
+            headline: ["Manrope", "Noto Sans TC", "sans-serif"],
+            sans: ["Inter", "Noto Sans TC", "sans-serif"],
+          }
+        },
+      },
+    };
+  </script>
+  
+  <style type="text/tailwindcss">
+    body { background-color: #f9fafb; -webkit-tap-highlight-color: transparent; }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* 統一深藍底導覽列 */
+    .unified-nav { @apply fixed bottom-0 w-full max-w-md bg-[#1e3a8a] flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.15)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-[20px] border-t border-blue-900; }
+    .nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-blue-200/60 h-full; min-width: 48px; }
+    .nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5 bg-transparent; }
+    .nav-btn.nav-active { @apply text-white font-bold; }
+    .nav-btn.nav-active .icon-box { @apply bg-white/20 text-white; }
   </style>
 </head>
-<body class="flex flex-col items-center">
-<div class="w-full max-w-md bg-white h-screen relative flex flex-col shadow-2xl overflow-hidden">
+<body class="font-sans text-text-main min-h-screen flex flex-col items-center bg-gray-50">
+
+<div class="w-full max-w-md bg-background h-screen relative flex flex-col shadow-2xl overflow-hidden">
   
-  <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur px-5 py-4 flex justify-between items-center border-b border-slate-100">
-    <div class="text-xl font-black text-slate-800">店家審核中心</div>
-    <button onclick="loadAllSales()"><i data-lucide="refresh-cw" class="w-5 h-5 text-slate-400" id="refresh-icon"></i></button>
+  <nav class="fixed top-0 w-full max-w-md z-40 bg-white/95 backdrop-blur-xl px-5 pt-4 pb-0 flex flex-col border-b border-gray-200 shadow-sm">
+    <div class="flex justify-between items-center w-full mb-3">
+        <div class="text-[19px] font-extrabold text-gray-800 tracking-tight flex items-center gap-2">
+        <i data-lucide="store" class="w-6 h-6 text-primary"></i> 店家審核管理
+        </div>
+        <button onclick="loadSalesList()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-90 transition-transform">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+    </div>
+    <!-- 頁籤切換 -->
+    <div class="flex w-full gap-2 mt-1">
+        <button id="tab-pending" onclick="switchTab('pending')" class="flex-1 py-2.5 font-bold text-[14px] text-primary border-b-[3px] border-primary transition-all">待審核</button>
+        <button id="tab-approved" onclick="switchTab('approved')" class="flex-1 py-2.5 font-bold text-[14px] text-gray-400 border-b-[3px] border-transparent transition-all">已開通</button>
+    </div>
   </nav>
 
-  <main class="flex-1 overflow-y-auto pb-32 pt-20">
-    <div id="view-loading" class="h-64 flex flex-col items-center justify-center space-y-3">
-      <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+  <main class="flex-1 overflow-y-auto pb-28 pt-[120px] px-4 bg-gray-50">
+    <div id="view-loading" class="h-64 flex flex-col items-center justify-center space-y-4">
+      <i data-lucide="loader-2" class="w-8 h-8 text-primary animate-spin"></i>
+      <p class="text-gray-500 font-bold text-[13px] tracking-wider">資料讀取中</p>
     </div>
 
-    <!-- BOX 1: 待審核 -->
-    <section id="section-pending" class="hidden">
-      <div class="section-header"><span>待審核名單</span><span id="count-pending" class="text-amber-500">0</span></div>
-      <div id="container-pending"></div>
-    </section>
-
-    <!-- BOX 2: 已通過 -->
-    <section id="section-approved" class="hidden">
-      <div class="section-header"><span>合作店家總覽</span><span id="count-approved" class="text-blue-500">0</span></div>
-      <div id="container-approved"></div>
-    </section>
-
-    <div id="view-empty" class="hidden py-20 text-center text-slate-400 font-bold">目前無註冊紀錄</div>
+    <div id="list-container" class="hidden space-y-4 animate-in fade-in">
+        <!-- 卡片動態渲染區 -->
+    </div>
   </main>
 
   <nav id="bottom-nav-admin" class="unified-nav">
-      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px]">主頁</span></button>
-      <button onclick="window.location.href='admin-sales.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px]">店家</span></button>
-      <button onclick="window.location.href='card.html'" class="nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px]">名片</span></button>
-      <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px]">參數</span></button>
+      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">主頁</span></button>
+      <button onclick="window.location.href='admin-sales.html'" class="nav-btn nav-active"><div class="icon-box"><i data-lucide="store" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">店家</span></button>
+      <button onclick="window.location.href='index.html'" class="nav-btn"><div class="icon-box"><i data-lucide="users" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
+      <button onclick="window.location.href='fate.html'" class="nav-btn"><div class="icon-box"><i data-lucide="sparkles" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
+      <button onclick="window.location.href='card.html'" class="nav-btn"><div class="icon-box"><i data-lucide="contact" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
+      <button onclick="window.location.href='profile.html'" class="nav-btn"><div class="icon-box"><i data-lucide="settings" class="w-6 h-6"></i></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
   </nav>
 </div>
 
+<div id="toast" class="hidden fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all z-[10000] font-bold flex items-center gap-2 w-max max-w-[90vw] opacity-0 pointer-events-none border border-gray-700"></div>
+
 <script>
+  const LIFF_ID = "2008924519-RslRiLoO"; 
   const WORKER_URL = "https://salesmemager.fangwl591021.workers.dev/"; 
-  window.fetchAPI = async (action, payload = {}) => {
-    const res = await fetch(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action, payload }) });
-    const d = await res.json();
-    if (!d.success) throw new Error(d.error);
-    return d.data;
+  const ADMIN_IDS = ["Uf729764dbb5b652a5a90a467320bea29", "U58eb5c1a747450140ce1335af709ae55", "U8932b891ad24da512afb9c1a6f41567b"];
+  
+  let currentTab = 'pending';
+  let allSalesData = [];
+  let isProcessing = false;
+
+  lucide.createIcons();
+
+  window.showToast = function(msg, isError = false) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    const iconName = isError ? 'alert-circle' : 'check-circle-2';
+    t.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4"></i> ${msg}`;
+    t.className = `fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all font-bold flex items-center gap-2 w-max max-w-[90vw] ${isError ? 'bg-red-500 text-white border-red-600' : 'bg-gray-800 text-white border-gray-700'} opacity-100 z-[10000]`;
+    t.classList.remove('hidden');
+    lucide.createIcons({ root: t });
+    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, -1rem)'; setTimeout(() => t.classList.add('hidden'), 300); }, 3000); 
   };
 
-  async function loadAllSales() {
-    document.getElementById('view-loading').classList.remove('hidden');
-    try {
-      const list = await fetchAPI('getAllSales');
-      const pending = list.filter(i => i.status === '審核中');
-      const approved = list.filter(i => i.status === '已開通');
-      
-      document.getElementById('container-pending').innerHTML = pending.map(i => `<div class="list-item"><div class="flex-1"><h4 class="font-bold">${i.name}</h4><p class="text-xs text-slate-400">帳號: ${i.loginAccount}</p></div><button onclick="approveSales('${i.userId}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-xs">開通</button></div>`).join('');
-      document.getElementById('container-approved').innerHTML = approved.map(i => `<div class="list-item"><div class="flex-1"><h4 class="font-bold">${i.name}</h4><p class="text-xs text-slate-400">${i.registerTime} 加入</p></div><i data-lucide="check-circle" class="text-green-500 w-5 h-5"></i></div>`).join('');
-      
-      document.getElementById('section-pending').classList.toggle('hidden', pending.length===0);
-      document.getElementById('section-approved').classList.remove('hidden');
-      document.getElementById('count-pending').innerText = pending.length;
-      document.getElementById('count-approved').innerText = approved.length;
-      lucide.createIcons();
-    } catch(e) { alert("讀取失敗"); }
-    finally { document.getElementById('view-loading').classList.add('hidden'); }
+  async function fetchAPI(action, payload = {}) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const response = await fetch(WORKER_URL, {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, payload }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    const resText = await response.text();
+    let result = JSON.parse(resText);
+    if (!result.success) throw new Error(result.error);
+    return result.data;
   }
 
-  async function approveSales(uid) {
-    if(!confirm("確定開通權限？")) return;
+  document.addEventListener("DOMContentLoaded", async () => {
     try {
-      await fetchAPI('approveSales', { targetUid: uid });
-      loadAllSales();
-    } catch(e) { alert("操作失敗"); }
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { 
+        liff.login({ redirectUri: window.location.href }); 
+        return; 
+      }
+      
+      const profile = await liff.getProfile();
+      if (!ADMIN_IDS.includes(profile.userId)) {
+          alert("無權限存取此頁面");
+          window.location.replace('index.html');
+          return;
+      }
+
+      loadSalesList();
+    } catch (err) {
+      showToast("初始化失敗：" + err.message, true);
+    }
+  });
+
+  window.switchTab = function(tab) {
+      currentTab = tab;
+      
+      const tabPending = document.getElementById('tab-pending');
+      const tabApproved = document.getElementById('tab-approved');
+      
+      if (tab === 'pending') {
+          tabPending.className = "flex-1 py-2.5 font-bold text-[14px] text-primary border-b-[3px] border-primary transition-all";
+          tabApproved.className = "flex-1 py-2.5 font-bold text-[14px] text-gray-400 border-b-[3px] border-transparent transition-all";
+      } else {
+          tabApproved.className = "flex-1 py-2.5 font-bold text-[14px] text-primary border-b-[3px] border-primary transition-all";
+          tabPending.className = "flex-1 py-2.5 font-bold text-[14px] text-gray-400 border-b-[3px] border-transparent transition-all";
+      }
+      
+      renderList();
   }
 
-  window.onload = async () => {
-    await liff.init({ liffId: "2008924519-RslRiLoO" });
-    loadAllSales();
-  };
+  window.loadSalesList = async function() {
+      document.getElementById('view-loading').classList.remove('hidden');
+      document.getElementById('list-container').classList.add('hidden');
+      
+      try {
+          allSalesData = await fetchAPI('getSalesList', {});
+          renderList();
+          document.getElementById('view-loading').classList.add('hidden');
+          document.getElementById('list-container').classList.remove('hidden');
+      } catch (err) {
+          showToast("讀取失敗: " + err.message, true);
+      }
+  }
+
+  window.renderList = function() {
+      const container = document.getElementById('list-container');
+      container.innerHTML = '';
+      
+      const filteredData = allSalesData.filter(s => {
+          if (currentTab === 'pending') return s.status === '審核中';
+          return s.status === '已開通';
+      });
+
+      if (filteredData.length === 0) {
+          container.innerHTML = `
+          <div class="text-center py-16 text-gray-400 font-bold flex flex-col items-center gap-2">
+             <i data-lucide="inbox" class="w-10 h-10 opacity-50"></i> 目前沒有資料
+          </div>`;
+          lucide.createIcons({ root: container });
+          return;
+      }
+
+      filteredData.forEach(s => {
+          const isPending = s.status === '審核中';
+          let actionsHtml = '';
+          
+          if (isPending) {
+              actionsHtml = `
+              <div class="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <button onclick="updateStatus('${s.userId}', '已退回')" class="flex-1 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-[13px] active:scale-95 transition-all">退回申請</button>
+                  <button onclick="updateStatus('${s.userId}', '已開通')" class="flex-1 py-2.5 bg-green-500 text-white rounded-xl font-bold text-[13px] active:scale-95 transition-all shadow-sm">核准開通</button>
+              </div>`;
+          } else {
+              const inviteUrl = `https://liff.line.me/${LIFF_ID}/?referrer=${s.userId}`;
+              actionsHtml = `
+              <div class="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <button onclick="updateStatus('${s.userId}', '已退回')" class="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-bold text-[13px] active:scale-95 transition-all shrink-0"><i data-lucide="ban" class="w-4 h-4"></i></button>
+                  <button onclick="copyInviteLink('${inviteUrl}')" class="flex-1 py-2.5 bg-primary text-white rounded-xl font-bold text-[13px] active:scale-95 transition-all shadow-sm flex items-center justify-center gap-1"><i data-lucide="copy" class="w-4 h-4"></i> 複製專屬推廣網址</button>
+              </div>`;
+          }
+
+          container.innerHTML += `
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative">
+              <div class="flex justify-between items-start mb-2">
+                  <h3 class="text-[17px] font-black text-gray-800">${s.name}</h3>
+                  <span class="text-[11px] font-bold px-2 py-1 rounded-md ${isPending ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600'}">${s.status}</span>
+              </div>
+              <div class="space-y-1.5 mt-3">
+                  <p class="text-[13px] text-gray-500 flex items-center gap-2"><i data-lucide="smartphone" class="w-4 h-4 text-gray-400"></i> ${s.phone || '無'}</p>
+                  <p class="text-[13px] text-gray-500 flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4 text-gray-400"></i> ${s.industry || '未填寫'}</p>
+                  <p class="text-[13px] text-gray-500 flex items-center gap-2"><i data-lucide="key-round" class="w-4 h-4 text-gray-400"></i> 登入帳號：<span class="font-mono font-bold text-gray-700">${s.loginAccount || '無'}</span></p>
+                  <p class="text-[11px] text-gray-400 flex items-center gap-2 mt-2"><i data-lucide="clock" class="w-3.5 h-3.5"></i> 申請時間：${s.createdAt}</p>
+              </div>
+              ${actionsHtml}
+          </div>`;
+      });
+      lucide.createIcons({ root: container });
+  }
+
+  window.updateStatus = async function(userId, newStatus) {
+      if (isProcessing) return;
+      if (!confirm(`確定要將狀態更改為「${newStatus}」嗎？`)) return;
+      
+      isProcessing = true;
+      try {
+          await fetchAPI('updateSalesStatus', { userId: userId, status: newStatus });
+          showToast(`✅ 已更新為：${newStatus}`);
+          
+          // 更新本地狀態並重新渲染
+          const target = allSalesData.find(s => s.userId === userId);
+          if (target) target.status = newStatus;
+          renderList();
+      } catch (err) {
+          showToast("更新失敗: " + err.message, true);
+      } finally {
+          isProcessing = false;
+      }
+  }
+
+  window.copyInviteLink = function(url) {
+      const fallbackInput = document.createElement('textarea');
+      fallbackInput.value = url;
+      fallbackInput.style.position = 'fixed'; fallbackInput.style.opacity = '0';
+      document.body.appendChild(fallbackInput);
+      fallbackInput.focus(); fallbackInput.select();
+      try {
+          document.execCommand('copy');
+          showToast("✅ 推廣網址已複製");
+      } catch(err) {
+          alert("請手動複製以下網址：\n\n" + url);
+      }
+      document.body.removeChild(fallbackInput);
+  }
 </script>
 </body>
 </html>
