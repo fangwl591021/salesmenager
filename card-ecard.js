@@ -1,16 +1,16 @@
 /**
  * card-ecard.js
- * Version: v2.1.0 (V2 升級版：支援 Tailwind CSS + Lucide Icons 動態渲染)
+ * Version: v20260417_salesmenager (業務高手專案：LIFF ID 更新版，無刪減完整輸出)
  */
 
 // ⭐ V2 預設常數庫
 const V2_ICONS = { 
     "LINE": "https://aiwe.cc/wp-content/uploads/2026/02/b75a5831fd553c7130aeafbb9783cf79.png", 
     "FB": "https://aiwe.cc/wp-content/uploads/2026/02/3986d1fd62384c8cdaa0e7c82f2740d1.png", 
-    "IG": "https://aiwe.cc/wp-content/uploads/2026/02/a33306edcecd1ebdfd14baea6718cf23.png", 
+    "IG": "https://aiwe.cc/wp-content/uploads/2026/02/a33306edcecd1ebdfd14baea6718cf23.png", // 新增預設 IG
     "YT": "https://aiwe.cc/wp-content/uploads/2026/02/87e6f8054bd3672f2885e38bddb112e2.png", 
     "TEL": "https://aiwe.cc/wp-content/uploads/2026/02/7254567388850a6b4d77b75208ebd4b8.png",
-    "WEB": "https://aiwe.cc/wp-content/uploads/2026/02/web_icon_placeholder.png"
+    "WEB": "https://aiwe.cc/wp-content/uploads/2026/02/web_icon_placeholder.png" // 需自行替換真實 WEB icon
 };
 let v2Socials = [];
 let v2Bars = [];
@@ -29,14 +29,13 @@ window.toggleECardType = function(type) {
     const uploadLabel = document.getElementById('ec-upload-label');
     const uploadHint = document.getElementById('ec-upload-hint');
     
-    // 重置所有 Tab 樣式 (Tailwind V2)
-    const baseTabClass = 'flex-1 py-2 rounded-lg text-sm font-medium text-gray-500 transition-all hover:text-gray-700 bg-transparent';
-    if (tabImg) tabImg.className = baseTabClass;
-    if (tabVid) tabVid.className = baseTabClass;
-    if (tabV2) tabV2.className = baseTabClass;
+    // 重置所有 Tab 樣式
+    if (tabImg) tabImg.className = 'flex-1 py-2 rounded-lg text-[14px] font-bold text-slate-500 transition-all hover:text-slate-700 bg-transparent';
+    if (tabVid) tabVid.className = 'flex-1 py-2 rounded-lg text-[14px] font-bold text-slate-500 transition-all hover:text-slate-700 bg-transparent';
+    if (tabV2) tabV2.className = 'flex-1 py-2 rounded-lg text-[14px] font-bold text-slate-500 transition-all hover:text-slate-700 bg-transparent';
 
     if (type === 'v2') {
-        if (tabV2) tabV2.className = 'flex-1 py-2 rounded-lg text-sm font-medium bg-white text-blue-600 shadow-sm transition-all';
+        if (tabV2) tabV2.className = 'flex-1 py-2 rounded-lg text-[14px] font-bold bg-white text-blue-600 shadow-sm transition-all';
         if (v1Fields) v1Fields.classList.add('hidden');
         if (v2Fields) v2Fields.classList.remove('hidden');
     } else {
@@ -44,14 +43,14 @@ window.toggleECardType = function(type) {
         if (v2Fields) v2Fields.classList.add('hidden');
         
         if (type === 'video') {
-          if (tabVid) tabVid.className = 'flex-1 py-2 rounded-lg text-sm font-medium bg-white text-gray-800 shadow-sm transition-all';
+          if (tabVid) tabVid.className = 'flex-1 py-2 rounded-lg text-[14px] font-bold bg-white text-slate-800 shadow-sm transition-all';
           if (vidGroup) vidGroup.classList.remove('hidden');
-          if (uploadLabel) uploadLabel.innerHTML = '點擊上傳封面圖縮圖 <span class="ml-1.5 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[11px] font-medium tracking-wider">選填</span>';
+          if (uploadLabel) uploadLabel.innerHTML = '點擊上傳封面圖縮圖 <span class="ml-1.5 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[11px] font-bold tracking-wider">選填</span>';
           if (uploadHint) uploadHint.innerText = '※ 影片必須有封面縮圖，若未上傳系統將自動代入名片圖或預設底圖。';
         } else {
-          if (tabImg) tabImg.className = 'flex-1 py-2 rounded-lg text-sm font-medium bg-white text-gray-800 shadow-sm transition-all';
+          if (tabImg) tabImg.className = 'flex-1 py-2 rounded-lg text-[14px] font-bold bg-white text-slate-800 shadow-sm transition-all';
           if (vidGroup) vidGroup.classList.add('hidden');
-          if (uploadLabel) uploadLabel.innerHTML = '點圖更換封面 <span class="ml-1.5 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[11px] font-medium tracking-wider">選填</span>';
+          if (uploadLabel) uploadLabel.innerHTML = '點圖更換封面 <span class="ml-1.5 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[11px] font-bold tracking-wider">選填</span>';
           if (uploadHint) uploadHint.innerText = '※ 若未上傳，系統將智能代入您原先的名片圖檔作為底圖。';
         }
     }
@@ -65,16 +64,15 @@ window.renderV2SocialUI = function() {
     list.innerHTML = '';
     v2Socials.forEach((s, idx) => {
         const div = document.createElement('div');
-        div.className = "flex items-center gap-3 bg-white p-2.5 rounded-xl border border-gray-100 shadow-sm relative group";
+        div.className = "flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm relative group";
         let opts = ['LINE', 'FB', 'IG', 'YT', 'TEL', 'WEB'].map(k => `<option value="${k}" ${s.type === k ? 'selected' : ''}>${k} 圖示</option>`).join('');
         div.innerHTML = `
-          <select class="bg-gray-50 border-none text-xs font-medium p-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-100 shrink-0 w-[90px]" onchange="v2Socials[${idx}].type=this.value; if(typeof window.updateECardPreview === 'function') window.updateECardPreview()">${opts}</select>
-          <input type="text" class="flex-1 bg-transparent border-none text-[13px] font-mono outline-none px-2 py-1 placeholder-gray-400 focus:ring-0" placeholder="輸入網址或電話" value="${s.u}" oninput="v2Socials[${idx}].u=this.value; if(typeof window.updateECardPreview === 'function') window.updateECardPreview()">
-          <button onclick="v2Socials.splice(${idx},1); window.renderV2SocialUI(); if(typeof window.updateECardPreview === 'function') window.updateECardPreview();" class="text-gray-400 hover:text-red-500 p-1 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          <select class="bg-slate-50 border-none text-[12px] font-bold p-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-100 shrink-0 w-[90px]" onchange="v2Socials[${idx}].type=this.value; if(typeof window.updateECardPreview === 'function') window.updateECardPreview()">${opts}</select>
+          <input type="text" class="flex-1 bg-transparent border-none text-[13px] font-mono outline-none px-2 py-1 placeholder-slate-400 focus:ring-0" placeholder="輸入網址或電話" value="${s.u}" oninput="v2Socials[${idx}].u=this.value; if(typeof window.updateECardPreview === 'function') window.updateECardPreview()">
+          <button onclick="v2Socials.splice(${idx},1); window.renderV2SocialUI(); if(typeof window.updateECardPreview === 'function') window.updateECardPreview();" class="text-slate-300 hover:text-red-500 p-1 transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span></button>
         `;
         list.appendChild(div);
     });
-    if (typeof lucide !== 'undefined') lucide.createIcons({ root: list });
 }
 window.addV2Social = function() { v2Socials.push({type:'LINE', u:'https://line.me'}); window.renderV2SocialUI(); if(typeof window.updateECardPreview === 'function') window.updateECardPreview(); }
 
@@ -84,23 +82,22 @@ window.renderV2BarsUI = function() {
     list.innerHTML = '';
     v2Bars.forEach((bar, idx) => {
         const div = document.createElement('div');
-        div.className = "flex flex-col gap-2 bg-gray-50 p-3 rounded-2xl relative border border-transparent hover:border-gray-200 transition-colors";
+        div.className = "flex flex-col gap-2 bg-slate-50 p-3 rounded-2xl relative border border-transparent hover:border-slate-200 transition-colors";
         div.innerHTML = `
           <div class="absolute top-2 right-2">
-             <button onclick="v2Bars.splice(${idx},1); window.renderV2BarsUI(); if(typeof window.updateECardPreview === 'function') window.updateECardPreview();" class="text-gray-400 hover:text-red-500 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+             <button onclick="v2Bars.splice(${idx},1); window.renderV2BarsUI(); if(typeof window.updateECardPreview === 'function') window.updateECardPreview();" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[16px]">close</span></button>
           </div>
           <div class="flex items-center gap-2 pr-6">
-              <span class="text-xs font-medium text-gray-400 shrink-0 w-8">文字</span>
-              <input type="text" value="${bar.t}" class="custom-input !h-9 !bg-white shadow-sm !text-[13px] !rounded-lg flex-1" placeholder="按鈕顯示文字" oninput="v2Bars[${idx}].t=this.value; if(typeof window.updateECardPreview === 'function') window.updateECardPreview()">
+              <span class="text-[12px] font-bold text-slate-400 shrink-0 w-8">文字</span>
+              <input type="text" value="${bar.t}" class="custom-input !h-[36px] !bg-white shadow-sm !text-[13px] !rounded-lg flex-1" placeholder="按鈕顯示文字" oninput="v2Bars[${idx}].t=this.value; if(typeof window.updateECardPreview === 'function') window.updateECardPreview()">
           </div>
           <div class="flex items-center gap-2">
-              <span class="text-xs font-medium text-gray-400 shrink-0 w-8">網址</span>
-              <input type="text" value="${bar.u}" class="custom-input !h-9 !bg-white shadow-sm !text-xs font-mono !rounded-lg flex-1" placeholder="https:// 或 tel:" oninput="v2Bars[${idx}].u=this.value; if(typeof window.updateECardPreview === 'function') window.updateECardPreview()">
+              <span class="text-[12px] font-bold text-slate-400 shrink-0 w-8">網址</span>
+              <input type="text" value="${bar.u}" class="custom-input !h-[36px] !bg-white shadow-sm !text-[12px] font-mono !rounded-lg flex-1" placeholder="https:// 或 tel:" oninput="v2Bars[${idx}].u=this.value; if(typeof window.updateECardPreview === 'function') window.updateECardPreview()">
           </div>
         `;
         list.appendChild(div);
     });
-    if (typeof lucide !== 'undefined') lucide.createIcons({ root: list });
 }
 window.addV2Bar = function() { v2Bars.push({t:"新按鈕", u:"https://line.me"}); window.renderV2BarsUI(); if(typeof window.updateECardPreview === 'function') window.updateECardPreview(); }
 
@@ -317,7 +314,7 @@ window.openECardGenerator = function() {
             if (el) el.value = val;
         };
 
-        // ⭐ 提前萃取預設聯絡資訊與社群 (V1 / V2 共用)
+        // ⭐ QQ 優化：提前萃取預設聯絡資訊與社群 (V1 / V2 共用)
         let autoExtractedBtns = [];
         let autoExtractedSocials = [];
 
@@ -357,6 +354,7 @@ window.openECardGenerator = function() {
             if (wUrl) {
                 if (autoExtractedBtns.length < 4) autoExtractedBtns.push({ l: '公司網站', u: wUrl, c: '#06C755' }); 
                 
+                // 智慧判斷網址屬性
                 if (wUrl.includes('facebook.com') || wUrl.includes('fb.')) autoExtractedSocials.push({ type: 'FB', u: wUrl });
                 else if (wUrl.includes('instagram.com') || wUrl.includes('instagr.am')) autoExtractedSocials.push({ type: 'IG', u: wUrl });
                 else if (wUrl.includes('youtube.com') || wUrl.includes('youtu.be')) autoExtractedSocials.push({ type: 'YT', u: wUrl });
@@ -381,6 +379,7 @@ window.openECardGenerator = function() {
             });
         }
 
+        // 去除重複的社群圖示
         autoExtractedSocials = autoExtractedSocials.filter((social, index, self) => 
             index === self.findIndex((t) => t.type === social.type)
         );
@@ -394,17 +393,17 @@ window.openECardGenerator = function() {
             for(let i=1; i<=4; i++) {
                 const b = sBtns[i-1] || {l:'', u:'', c:'#06C755'};
                 listEl.innerHTML += `
-                <div class="flex items-center gap-3 bg-gray-50 p-2.5 rounded-2xl">
+                <div class="flex items-center gap-3 bg-slate-50 p-2.5 rounded-2xl">
                   <input type="color" id="ec-btn${i}-color" value="${b.c || '#06C755'}" class="w-10 h-10 rounded-xl cursor-pointer border-none bg-transparent shrink-0" oninput="if (typeof window.updateECardPreview === 'function') window.updateECardPreview()">
                   <div class="flex flex-col flex-1 gap-1">
-                    <input type="text" id="ec-btn${i}-label" class="w-full bg-transparent border-none text-[14px] font-bold outline-none px-2 py-1 placeholder-gray-400 focus:ring-0" placeholder="按鈕文字 (選填)" value="${b.l}" oninput="if (typeof window.updateECardPreview === 'function') window.updateECardPreview()">
-                    <input type="text" id="ec-btn${i}-url" class="w-full bg-transparent border-none text-[13px] text-gray-500 font-medium outline-none px-2 py-1 placeholder-gray-400 focus:ring-0" placeholder="連結網址 (選填)" value="${b.u}" oninput="if (typeof window.updateECardPreview === 'function') window.updateECardPreview()">
+                    <input type="text" id="ec-btn${i}-label" class="w-full bg-transparent border-none text-[14px] font-bold outline-none px-2 py-1 placeholder-slate-400 focus:ring-0" placeholder="按鈕文字 (選填)" value="${b.l}" oninput="if (typeof window.updateECardPreview === 'function') window.updateECardPreview()">
+                    <input type="text" id="ec-btn${i}-url" class="w-full bg-transparent border-none text-[13px] text-slate-500 font-medium outline-none px-2 py-1 placeholder-slate-400 focus:ring-0" placeholder="連結網址 (選填)" value="${b.u}" oninput="if (typeof window.updateECardPreview === 'function') window.updateECardPreview()">
                   </div>
                 </div>`;
             }
         }
 
-        // ⭐ 智慧載入 V2 設定
+        // ⭐ 智慧載入 V2 設定：如果有設定檔就照舊，如果完全沒設定，就帶入自動萃取的陣列（若無資料則為空陣列不顯示）
         if (savedConfig && savedConfig.hasOwnProperty('v2Socials')) {
             v2Socials = savedConfig.v2Socials;
         } else {
@@ -499,7 +498,7 @@ window.openECardGenerator = function() {
         if (typeof window.updateECardPreview === 'function') window.updateECardPreview();
         
     } catch (err) {
-        if (typeof window.showToast === 'function') window.showToast("開啟編輯器異常：" + err.message, "error");
+        alert("開啟編輯器時發生系統異常：" + err.message);
     }
 }
   
@@ -613,19 +612,17 @@ window.updateECardPreview = function(forceBase64 = null, cropTarget = null) {
         <div class="preview-header w-full flex justify-end p-2 bg-white pb-1 z-20 absolute top-0 right-0">
             <div class="preview-share-btn bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm tracking-widest">分享</div>
         </div>
-        <div id="preview-ec-hero" class="relative w-full overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
+        <div id="preview-ec-hero" class="relative w-full overflow-hidden bg-slate-100 shrink-0 flex items-center justify-center">
             <img id="preview-ec-img" src="" class="absolute inset-0 w-full h-full object-cover z-0 hidden">
             <video id="preview-ec-video" muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-10 hidden"></video>
-            <div id="preview-ec-play-icon" class="absolute inset-0 z-20 flex items-center justify-center text-white/80 hidden pointer-events-none"><i data-lucide="play-circle" class="w-12 h-12 drop-shadow-md"></i></div>
+            <div id="preview-ec-play-icon" class="absolute inset-0 z-20 flex items-center justify-center text-white/80 hidden pointer-events-none"><span class="material-symbols-outlined text-[48px] drop-shadow-md">play_circle</span></div>
         </div>
         <div class="px-3.5 py-4 text-center bg-white relative">
-            <h2 id="preview-ec-title" class="text-[19px] font-black text-gray-800 leading-snug mb-1.5"></h2>
-            <p id="preview-ec-desc" class="text-[13px] text-gray-500 whitespace-pre-wrap leading-relaxed text-left font-medium"></p>
+            <h2 id="preview-ec-title" class="text-[19px] font-black text-slate-800 leading-snug mb-1.5"></h2>
+            <p id="preview-ec-desc" class="text-[13px] text-slate-500 whitespace-pre-wrap leading-relaxed text-left font-medium"></p>
         </div>
         <div id="preview-ec-buttons" class="px-3.5 pb-4 pt-0 bg-white space-y-2"></div>
     `;
-
-    if (typeof lucide !== 'undefined') lucide.createIcons({ root: bubbleEl });
 
     const heroEl = document.getElementById('preview-ec-hero');
     const imgEl = document.getElementById('preview-ec-img');
@@ -789,13 +786,10 @@ window.checkFormat = function(showAlert = false) {
     }
   
     if (errors.length > 0) {
-        if (showAlert) {
-            if (typeof window.showToast === 'function') window.showToast("發現格式錯誤：\n" + errors.join("\n"), "error");
-            else alert("⚠️ 發現格式錯誤：\n\n" + errors.join("\n"));
-        }
+        if (showAlert) alert("⚠️ 發現格式錯誤：\n\n" + errors.join("\n"));
         return false;
     } else {
-        if (showAlert) { if (typeof window.showToast === 'function') window.showToast("✅ 格式檢查無誤", "success"); }
+        if (showAlert) { if (typeof window.showToast === 'function') window.showToast("✅ 格式檢查無誤"); }
         return true;
     }
 }
@@ -806,8 +800,7 @@ window.saveECardConfig = async function(isSilent = false) {
     const originalText = btn ? btn.innerHTML : '';
     
     if (!isSilent && btn) {
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
-        if (typeof lucide !== 'undefined') lucide.createIcons({ root: btn });
+        btn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span>';
         btn.classList.add('pointer-events-none', 'opacity-50');
     }
   
@@ -828,6 +821,7 @@ window.saveECardConfig = async function(isSilent = false) {
       altText: getVal('ec-alt-text-input', '這是我的電子名片，請多指教').trim() || '這是我的電子名片，請多指教',
       isPrivate: isPublicEl ? !isPublicEl.checked : false,
       buttons: [],
+      // ⭐ V2 資料儲存
       v2Logo: getVal('ec-v2-logo-url', ''),
       v2BgStart: getVal('ec-v2-bg-start', '#57142b'),
       v2BgEnd: getVal('ec-v2-bg-end', '#46250c'),
@@ -835,6 +829,7 @@ window.saveECardConfig = async function(isSilent = false) {
       v2Bars: v2Bars
     };
     
+    // V1 Buttons
     for(let i=1; i<=4; i++) {
       const l = getVal(`ec-btn${i}-label`, '');
       const u = getVal(`ec-btn${i}-url`, '');
@@ -853,9 +848,9 @@ window.saveECardConfig = async function(isSilent = false) {
       }
       currentActiveCard['自訂名片設定'] = JSON.stringify(config); 
       if(config.imgUrl) currentActiveCard['名片圖檔'] = config.imgUrl; 
-      if(!isSilent && typeof window.showToast === 'function') window.showToast('✅ 名片設定已儲存', 'success');
+      if(!isSilent && typeof window.showToast === 'function') window.showToast('✅ 名片設定已儲存');
     } catch(e) {
-      if(!isSilent && typeof window.showToast === 'function') window.showToast('儲存失敗', 'error');
+      if(!isSilent && typeof window.showToast === 'function') window.showToast('⚠️ 儲存失敗', true);
     } finally {
       if (!isSilent && btn) {
           btn.innerHTML = originalText;
@@ -870,7 +865,7 @@ window.togglePrivacyAutoSave = async function() {
     const state = isPublicEl ? isPublicEl.checked : true;
     
     if (typeof window.showToast === 'function') {
-        window.showToast(state ? "✅ 已開放 AI 媒合與搜尋" : "🔒 隱私模式已啟動 (不參與配對)", state ? "success" : "info");
+        window.showToast(state ? "✅ 已開放 AI 媒合與搜尋" : "🔒 隱私模式已啟動 (不參與配對)");
     }
     
     if (typeof window.saveECardConfig === 'function') {
@@ -885,8 +880,7 @@ window.shareECardToLine = async function() {
     let oriHtml = '';
     if (btnShare) {
         oriHtml = btnShare.innerHTML;
-        btnShare.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1"></i> 發送中...';
-        if (typeof lucide !== 'undefined') lucide.createIcons({ root: btnShare });
+        btnShare.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">refresh</span> 發送中...';
         btnShare.classList.add('pointer-events-none');
     }
   
@@ -898,6 +892,7 @@ window.shareECardToLine = async function() {
       
       if (!config) throw new Error("無法取得名片設定檔");
 
+      // 動態取得 V1 預設圖片比例
       const imgInput = document.getElementById('ec-img-input');
       let rawUrl = imgInput ? imgInput.value : '';
       if (!rawUrl) {
@@ -921,7 +916,7 @@ window.shareECardToLine = async function() {
               } else {
                   await liff.shareTargetPicker([{ type: "flex", altText: altText, contents: flexMessageObj }]);
               }
-              if (typeof window.showToast === 'function') window.showToast('✅ 數位名片已發送！', 'success');
+              if (typeof window.showToast === 'function') window.showToast('✅ 數位名片已發送！');
               setTimeout(()=>liff.closeWindow(), 1000);
           } catch(e) {
               if (typeof window.fallbackShare === 'function') window.fallbackShare(shareUrl, altText);
@@ -930,7 +925,7 @@ window.shareECardToLine = async function() {
           if (typeof window.fallbackShare === 'function') window.fallbackShare(shareUrl, altText);
       }
     } catch(err) {
-      if (typeof window.showToast === 'function') window.showToast("錯誤：" + err.message, "error");
+      alert("錯誤：" + err.message);
     } finally {
       if (btnShare) {
           btnShare.innerHTML = oriHtml;
@@ -941,7 +936,7 @@ window.shareECardToLine = async function() {
   
 window.handleECardImageUpload = function(input, targetMode = 'ecard') {
     if (typeof window.openCropper === 'function') {
-        window.openCropper(input, targetMode);
+        window.openCropper(input, targetMode); // 傳入 targetMode 區分 V1 還是 v2logo
     }
 }
 
@@ -982,8 +977,7 @@ window.fetchVoomData = async function() {
     const btn = document.getElementById('btn-fetch-voom');
     const originalText = btn ? btn.innerHTML : '解析貼文';
     if (btn) {
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1 align-middle inline-block"></i> 解析中...';
-        if (typeof lucide !== 'undefined') lucide.createIcons({ root: btn });
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px] align-middle">refresh</span> 解析中...';
         btn.classList.add('pointer-events-none', 'opacity-70');
     }
 
@@ -1031,5 +1025,5 @@ window.applyVoomVideo = function() {
     
     window.closeVoomModal();
     if (typeof window.updateECardPreview === 'function') window.updateECardPreview();
-    if (typeof window.showToast === 'function') window.showToast('✅ 影片已成功帶入', 'success');
+    if (typeof window.showToast === 'function') window.showToast('✅ 影片已成功帶入');
 };
