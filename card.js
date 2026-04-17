@@ -1,6 +1,6 @@
 /**
  * card.js 
- * Version: v20260417_salesmemager (業務高手專案：修復輸出斷尾 Bug，完整無刪減)
+ * Version: v20260417_salesmemager_v2 (業務高手專案：修正名片圖片過大導致資料庫崩潰與假圖問題，完整無刪減)
  */
 const LIFF_ID = "2008924519-RslRiLoO"; 
 const WORKER_URL = "https://salesmemager.fangwl591021.workers.dev"; 
@@ -748,20 +748,37 @@ window.confirmCrop = async function() {
 
 window.saveToCloud = async function() {
   if (isProcessing) return; isProcessing = true; setButtonLoading('btn-save', true);
-  const payload = { base64Image: compressedBase64, Notes: document.getElementById('f-Notes')?.value || '', userId: '' };
+  
+  let imageUrlToSave = '';
+  try {
+      window.showToast("正在上傳名片圖檔...", false);
+      imageUrlToSave = await window.fetchAPI('uploadImage', { base64Image: compressedBase64 });
+      if (!imageUrlToSave || !imageUrlToSave.startsWith('http')) throw new Error("無效的圖片網址");
+  } catch (err) {
+      window.showToast("圖檔上傳失敗，無法儲存", true);
+      setButtonLoading('btn-save', false, '存入雲端'); isProcessing = false; 
+      return;
+  }
+
+  const payload = { imageUrl: imageUrlToSave, Notes: document.getElementById('f-Notes')?.value || '', userId: userProfile.userId, 'LINE ID': userProfile.userId };
   const fields = ['Name', 'EnglishName', 'Title', 'Department', 'CompanyName', 'TaxID', 'Mobile', 'Tel', 'Ext', 'Fax', 'Address', 'Email', 'Website', 'SocialMedia', 'Slogan'];
   fields.forEach(f => { payload[f] = document.getElementById(`f-${f}`)?.value || ''; });
   if (!payload.Name && !payload.CompanyName) { setButtonLoading('btn-save', false, '存入雲端'); isProcessing = false; return window.showToast("⚠️ 請輸入姓名或公司", true); }
   
   try {
-    await window.fetchAPI('saveCard', payload); window.showToast("🎉 建立成功！");
+    window.showToast("正在寫入資料庫...", false);
+    await window.fetchAPI('saveCard', payload); 
+    window.showToast("🎉 建立成功！");
     
     localStorage.removeItem(CACHE_KEY_CONTACTS);
     setTimeout(() => { 
         window.resetUI(); 
         loadCardContacts();
     }, 1000);
-  } catch(err) { console.error(err); } finally { setButtonLoading('btn-save', false, '存入雲端'); isProcessing = false; }
+  } catch(err) { 
+      window.showToast("寫入資料庫失敗: " + err.message, true);
+      console.error(err); 
+  } finally { setButtonLoading('btn-save', false, '存入雲端'); isProcessing = false; }
 }
 
 window.batchRegenerateECards = async function() {
