@@ -1,4 +1,4 @@
-<!-- Version: v2.6.4 (QQ 快取破除版：加入一鍵清洗資料庫功能，解決前端資料殘留問題) -->
+<!-- Version: v2.6.5 (QQ 修復版：修正存檔時過大 Base64 字串導致崩潰與名片圖檔顯示問題) -->
 <!DOCTYPE html>
 <html class="light" lang="zh-TW">
 <head>
@@ -14,7 +14,7 @@
 
   <script>
     // ⭐ 強制快取破除機制
-    const APP_VER = "v2.6.4";
+    const APP_VER = "v2.6.5";
     if (localStorage.getItem('app_ver') !== APP_VER) { 
         sessionStorage.clear(); 
         localStorage.setItem('app_ver', APP_VER); 
@@ -225,12 +225,7 @@
     <!-- 後台：管理核銷 -->
     <div id="view-admin-activities" class="hidden space-y-4 animate-in fade-in pt-2">
       <div class="flex justify-between items-center pl-1 mb-2">
-        <div class="flex items-center gap-2">
-          <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight">管理核銷</h2>
-          <button onclick="reloadActivities()" id="btn-refresh-admin-activities" class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 active:scale-90 transition-all border border-slate-100">
-            <span class="material-symbols-outlined text-[18px]">refresh</span>
-          </button>
-        </div>
+        <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight">管理核銷</h2>
         <button onclick="switchView('admin-stats')" class="bg-slate-800 text-white px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
           <span class="material-symbols-outlined text-[18px]">bar_chart</span> 營運統計
         </button>
@@ -851,20 +846,27 @@
   async function recognizeAndSaveRegCard() {
     const s2 = document.getElementById('reg-step-2'); if(s2) s2.classList.add('pointer-events-none', 'opacity-50');
     try {
+      showToast("正在上傳名片圖檔...", false);
+      const uploadedImgUrl = await fetchAPI('uploadImage', { base64Image: regCompressedBase64 });
+      showToast("AI 辨識名片中...", false);
       const data = await fetchAPI('recognizeCard', { base64Image: regCompressedBase64, Birthday: regStep1Data.birthday });
-      const payload = { base64Image: regCompressedBase64, userId: userProfile.userId, 'LINE ID': userProfile.userId, Name: regStep1Data.name, EnglishName: data.EnglishName || '', Title: data.Title || '', Department: data.Department || '', CompanyName: data.CompanyName || '', TaxID: data.TaxID || '', Mobile: regStep1Data.phone, Tel: data.Tel || '', Ext: data.Ext || '', Fax: data.Fax || '', Address: data.Address || regStep1Data.address || '', Email: data.Email || '', Website: data.Website || '', SocialMedia: data.SocialMedia || '', Slogan: data.Slogan || '', Notes: '註冊自動建檔', Birthday: regStep1Data.birthday || '', Personality: data.Personality || '', Hobbies: data.Hobbies || '', Wealth: data.Wealth || '', Health: data.Health || '', Career: data.Career || '' };
+      const payload = { imageUrl: uploadedImgUrl, userId: userProfile.userId, 'LINE ID': userProfile.userId, Name: regStep1Data.name, EnglishName: data.EnglishName || '', Title: data.Title || '', Department: data.Department || '', CompanyName: data.CompanyName || '', TaxID: data.TaxID || '', Mobile: regStep1Data.phone, Tel: data.Tel || '', Ext: data.Ext || '', Fax: data.Fax || '', Address: data.Address || regStep1Data.address || '', Email: data.Email || '', Website: data.Website || '', SocialMedia: data.SocialMedia || '', Slogan: data.Slogan || '', Notes: '註冊自動建檔', Birthday: regStep1Data.birthday || '', Personality: data.Personality || '', Hobbies: data.Hobbies || '', Wealth: data.Wealth || '', Health: data.Health || '', Career: data.Career || '' };
       await fetchAPI('saveCard', payload); finishRegistration();
-    } catch(err) { finishRegistration(); }
+    } catch(err) { showToast("辨識或儲存失敗", true); finishRegistration(); }
   }
 
   async function recognizeAndSaveProfileCard() {
     try {
+      showToast("正在上傳名片圖檔...", false);
+      const uploadedImgUrl = await fetchAPI('uploadImage', { base64Image: regCompressedBase64 });
+      showToast("AI 辨識名片中...", false);
       const bday = document.getElementById('edit-birthday')?.value || '';
       const data = await fetchAPI('recognizeCard', { base64Image: regCompressedBase64, Birthday: bday });
-      const payload = { rowId: Date.now(), base64Image: regCompressedBase64, userId: userProfile.userId, 'LINE ID': userProfile.userId, Name: document.getElementById('edit-name')?.value || userProfile.displayName, EnglishName: data.EnglishName || '', Title: data.Title || '', Department: data.Department || '', CompanyName: data.CompanyName || '', TaxID: data.TaxID || '', Mobile: document.getElementById('edit-phone')?.value || '', Tel: data.Tel || '', Ext: data.Ext || '', Fax: data.Fax || '', Address: data.Address || document.getElementById('edit-address')?.value || '', Email: data.Email || '', Website: data.Website || '', SocialMedia: data.SocialMedia || '', Slogan: data.Slogan || '', Notes: '使用者自行上傳', Birthday: bday, Personality: data.Personality || '', Hobbies: data.Hobbies || '', Wealth: data.Wealth || '', Health: data.Health || '', Career: data.Career || '' };
+      const payload = { rowId: Date.now(), imageUrl: uploadedImgUrl, userId: userProfile.userId, 'LINE ID': userProfile.userId, Name: document.getElementById('edit-name')?.value || userProfile.displayName, EnglishName: data.EnglishName || '', Title: data.Title || '', Department: data.Department || '', CompanyName: data.CompanyName || '', TaxID: data.TaxID || '', Mobile: document.getElementById('edit-phone')?.value || '', Tel: data.Tel || '', Ext: data.Ext || '', Fax: data.Fax || '', Address: data.Address || document.getElementById('edit-address')?.value || '', Email: data.Email || '', Website: data.Website || '', SocialMedia: data.SocialMedia || '', Slogan: data.Slogan || '', Notes: '使用者自行上傳', Birthday: bday, Personality: data.Personality || '', Hobbies: data.Hobbies || '', Wealth: data.Wealth || '', Health: data.Health || '', Career: data.Career || '' };
       await fetchAPI('saveCard', payload); 
       globalCardContacts = await fetchAPI('getCardContacts', {}, false); checkMyCardEntry();
-    } catch(err) { }
+      showToast("✅ 名片已更新");
+    } catch(err) { showToast("更新名片失敗", true); }
   }
 
   window.finishRegistration = function() { isRegistered = true; registeredInfo = regStep1Data; const nav = document.getElementById('bottom-nav-user'); if(nav) nav.classList.remove('hidden'); switchView('user-activities'); }
