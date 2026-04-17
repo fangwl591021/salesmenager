@@ -1,4 +1,4 @@
-<!-- Version: v2.6.3 (QQ 退版穩定版：移除所有實驗性 NFC 邏輯，回歸極致穩定狀態) -->
+<!-- Version: v2.6.4 (QQ 快取破除版：加入一鍵清洗資料庫功能，解決前端資料殘留問題) -->
 <!DOCTYPE html>
 <html class="light" lang="zh-TW">
 <head>
@@ -11,6 +11,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <script>
+    // ⭐ 強制快取破除機制
+    const APP_VER = "v2.6.4";
+    if (localStorage.getItem('app_ver') !== APP_VER) { 
+        sessionStorage.clear(); 
+        localStorage.setItem('app_ver', APP_VER); 
+    }
+  </script>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -216,7 +225,12 @@
     <!-- 後台：管理核銷 -->
     <div id="view-admin-activities" class="hidden space-y-4 animate-in fade-in pt-2">
       <div class="flex justify-between items-center pl-1 mb-2">
-        <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight">管理核銷</h2>
+        <div class="flex items-center gap-2">
+          <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight">管理核銷</h2>
+          <button onclick="reloadActivities()" id="btn-refresh-admin-activities" class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 active:scale-90 transition-all border border-slate-100">
+            <span class="material-symbols-outlined text-[18px]">refresh</span>
+          </button>
+        </div>
         <button onclick="switchView('admin-stats')" class="bg-slate-800 text-white px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
           <span class="material-symbols-outlined text-[18px]">bar_chart</span> 營運統計
         </button>
@@ -255,6 +269,11 @@
           <div class="flex flex-col"><label class="input-label">Telegram Chat ID</label><input type="text" id="set-tg-chat" class="custom-input !bg-slate-50 text-slate-500" readonly placeholder="由上方轉換取得"></div>
           <div class="flex flex-col"><label class="input-label">官方 LINE 連結</label><input type="text" id="set-line-link" class="custom-input" placeholder="https://lin.ee/..."></div>
           <button id="btn-submit-settings" onclick="submitSettings()" class="w-full py-4 bg-[#06C755] text-white rounded-2xl font-bold text-[16px] shadow-sm active:scale-[0.98] transition-transform mt-2">儲存設定</button>
+          
+          <div class="pt-4 border-t border-slate-100 mt-4">
+            <label class="input-label text-red-500">進階維護</label>
+            <button id="btn-clean-db" onclick="cleanDatabaseCache()" class="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-[16px] shadow-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2"><span class="material-symbols-outlined">delete_sweep</span> 清洗資料庫與快取</button>
+          </div>
       </div>
     </div>
 
@@ -1193,6 +1212,21 @@
     if(isProcessing) return; isProcessing = true; setButtonLoading('btn-submit-settings', true);
     const getVal = (id) => document.getElementById(id)?.value || '';
     try { await fetchAPI('saveSettings', { TG_BOT_TOKEN: getVal('set-tg-token'), TG_CHAT_ID: getVal('set-tg-chat'), LINE_LINK: getVal('set-line-link') }); showToast('已儲存'); } catch(e) { showToast("儲存失敗", true); } finally { isProcessing = false; setButtonLoading('btn-submit-settings', false, '儲存設定'); }
+  }
+
+  window.cleanDatabaseCache = async function() {
+    if(!confirm("確定要清洗資料庫嗎？這將刪除總表與分頁不符的活動紀錄，並清空本地快取。")) return;
+    setButtonLoading('btn-clean-db', true);
+    try {
+      await fetchAPI('cleanDatabase');
+      sessionStorage.clear();
+      localStorage.removeItem('app_cache_card_contacts_v1');
+      showToast("清洗完成！系統將重新載入");
+      setTimeout(() => window.location.reload(), 1500);
+    } catch(e) {
+      showToast("清洗失敗: " + e.message, true);
+      setButtonLoading('btn-clean-db', false, '清洗資料庫與快取');
+    }
   }
 </script>
 </body>
