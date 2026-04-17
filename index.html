@@ -1,4 +1,4 @@
-<!-- Version: v2.8.2 (QQ 深度優化：恢復核銷面板功能，重構 CRM 與審核頁籤排版) -->
+<!-- Version: v2.8.3 (QQ 終極優化：補齊活動「報名」統計，全寬度大按鈕審核介面) -->
 <!DOCTYPE html>
 <html class="light" lang="zh-TW">
 <head>
@@ -13,10 +13,9 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <script>
-    const APP_VER = "v2.8.2";
+    const APP_VER = "v2.8.3";
     if (localStorage.getItem('app_ver') !== APP_VER) { 
-        sessionStorage.clear(); 
-        localStorage.setItem('app_ver', APP_VER); 
+        sessionStorage.clear(); localStorage.setItem('app_ver', APP_VER); 
     }
   </script>
 
@@ -32,10 +31,7 @@
             "text-muted": "#64748b", 
             error: "#ef4444" 
           },
-          fontFamily: { 
-            headline: ["Manrope", "Noto Sans TC", "sans-serif"],
-            sans: ["Inter", "Noto Sans TC", "sans-serif"] 
-          }
+          fontFamily: { headline: ["Manrope", "Noto Sans TC", "sans-serif"], sans: ["Inter", "Noto Sans TC", "sans-serif"] }
         }
       }
     }
@@ -43,15 +39,9 @@
   <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400; vertical-align: middle; }
     .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400; }
-    
-    body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; overscroll-behavior-y: none; }
-    input, textarea, select { -webkit-user-select: auto; user-select: auto; }
-    
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; user-select: none; overscroll-behavior-y: none; }
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
-    
-    .custom-input { @apply w-full h-[50px] px-4 bg-slate-100 border-none rounded-2xl outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all font-medium text-slate-800 text-[15px] placeholder-slate-400; }
+    .custom-input { @apply w-full h-[50px] px-4 bg-slate-100 border-none rounded-2xl outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all font-medium text-slate-800 text-[15px]; }
     
     .nav-btn { @apply flex flex-col items-center justify-center transition-all flex-1 text-slate-400 h-full; min-width: 48px;}
     .nav-btn .icon-box { @apply px-4 py-1.5 rounded-2xl transition-all flex items-center justify-center mb-0.5; }
@@ -59,7 +49,8 @@
     .nav-active .icon-box { @apply bg-slate-100 text-slate-800; }
     .nav-active .material-symbols-outlined { font-variation-settings: 'FILL' 1; }
 
-    .crm-sub-tab { @apply flex-1 py-4 text-[15px] font-bold transition-all border-b-2 text-center; }
+    /* CRM 子頁籤優化：更寬、更好點擊 */
+    .crm-sub-tab { @apply flex-1 py-4 text-[15px] font-bold transition-all text-center border-b-2; }
     .crm-sub-tab-active { @apply text-slate-800 border-slate-800 bg-white; }
     .crm-sub-tab-inactive { @apply text-slate-400 border-transparent bg-slate-50; }
 
@@ -71,75 +62,51 @@
 
 <div id="app-container" class="w-full max-w-md h-screen relative flex flex-col overflow-hidden bg-background">
   
-  <nav id="top-nav" class="fixed top-0 w-full max-w-md z-40 bg-white/90 backdrop-blur-md px-5 py-3.5 flex justify-between items-center left-1/2 -translate-x-1/2 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.02)]">
+  <nav id="top-nav" class="fixed top-0 w-full max-w-md z-40 bg-white/90 backdrop-blur-md px-5 py-3.5 flex justify-between items-center left-1/2 -translate-x-1/2 shadow-sm">
     <div class="text-[20px] font-extrabold text-slate-800 tracking-tight flex items-center gap-1">
-      業務高手
-      <span id="header-admin-badge" class="hidden bg-slate-800 text-white text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider font-bold ml-1">Admin</span>
+      業務高手 <span id="header-admin-badge" class="hidden bg-slate-800 text-white text-[9px] px-2 py-0.5 rounded-md uppercase font-bold ml-1">Admin</span>
     </div>
     <div class="flex items-center gap-3">
-      <div id="user-profile-badge" class="hidden flex items-center gap-2">
-        <img id="user-avatar" src="" class="w-9 h-9 rounded-full object-cover border border-slate-100">
-      </div>
-      <button id="role-switch-btn" onclick="toggleRoleMode()" class="hidden w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center active:scale-95 transition-all">
-        <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
-      </button>
+      <img id="user-avatar" src="" class="w-9 h-9 rounded-full object-cover border border-slate-100">
+      <button id="role-switch-btn" onclick="toggleRoleMode()" class="hidden w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center active:scale-95"><span class="material-symbols-outlined text-[20px]">swap_horiz</span></button>
     </div>
   </nav>
 
   <main id="main-content" class="flex-1 overflow-y-auto pb-32 pt-20 px-4 space-y-5">
-
     <div id="view-loading" class="h-full flex flex-col items-center justify-center space-y-4 pb-20 relative z-[9999]">
       <div class="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
-      <p id="loading-text" class="text-slate-500 font-bold tracking-widest text-[13px]">系統載入中</p>
+      <p id="loading-text" class="text-slate-500 font-bold text-[13px]">系統載入中</p>
     </div>
 
     <!-- 探索活動 -->
-    <div id="view-user-activities" class="hidden animate-in fade-in duration-500 pt-2 space-y-5">
-      <div class="flex justify-between items-center pl-1">
-        <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight">探索精彩活動</h2>
-        <button onclick="reloadActivities()" id="btn-refresh-activities" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 active:scale-90 transition-all border border-slate-100">
-          <span class="material-symbols-outlined text-[22px]">refresh</span>
-        </button>
-      </div>
+    <div id="view-user-activities" class="hidden space-y-5">
+      <div class="flex justify-between items-center"><h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight">探索活動</h2><button onclick="reloadActivities()" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 active:scale-90"><span class="material-symbols-outlined">refresh</span></button></div>
       <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1" id="activity-categories"></div>
-      <div id="user-activities-container" class="grid grid-cols-2 gap-3 px-1"></div>
+      <div id="user-activities-container" class="grid grid-cols-2 gap-3"></div>
     </div>
 
     <!-- 報名紀錄 -->
-    <div id="view-user-history" class="hidden animate-in fade-in pt-2 space-y-4">
-      <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight pl-1">報名紀錄</h2>
+    <div id="view-user-history" class="hidden space-y-4 pt-2">
+      <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight">報名紀錄</h2>
       <div id="user-history-container" class="flex flex-col gap-4"></div>
     </div>
 
-    <!-- 後台：管理核銷 -->
-    <div id="view-admin-activities" class="hidden space-y-4 animate-in fade-in pt-2">
-      <div class="flex justify-between items-center pl-1 mb-2">
+    <!-- 管理核銷 (admin) -->
+    <div id="view-admin-activities" class="hidden space-y-4 pt-2">
+      <div class="flex justify-between items-center mb-2">
         <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight">管理核銷</h2>
-        <button onclick="switchView('admin-stats')" class="bg-slate-800 text-white px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
-          <span class="material-symbols-outlined text-[18px]">bar_chart</span> 營運統計
-        </button>
+        <button onclick="switchView('admin-stats')" class="bg-slate-800 text-white px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-1.5 active:scale-95 shadow-sm"><span class="material-symbols-outlined text-[18px]">bar_chart</span> 營運統計</button>
       </div>
       <div id="admin-activity-list-container" class="space-y-4"></div>
     </div>
 
-    <!-- 後台：營運統計 -->
-    <div id="view-admin-stats" class="hidden space-y-4 animate-in slide-in-from-right-8 pt-2">
-      <div class="flex items-center gap-3 pl-1 mb-4">
-        <button onclick="switchView('admin-activities')" class="w-9 h-9 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm border border-slate-100 active:scale-90 transition-all"><span class="material-symbols-outlined text-[20px]">arrow_back</span></button>
-        <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight">營運統計</h2>
-      </div>
-      <div id="admin-stats-container" class="space-y-5"></div>
-    </div>
-
-    <!-- 後台：CRM (整合經銷商審核) -->
-    <div id="view-admin-crm" class="hidden space-y-4 animate-in fade-in pt-2">
-      <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight pl-1 mb-4">會員 CRM</h2>
-      
-      <div class="flex w-full mb-6 bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 shrink-0">
+    <!-- CRM (admin) -->
+    <div id="view-admin-crm" class="hidden space-y-4 pt-2">
+      <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight mb-2">會員 CRM</h2>
+      <div class="flex w-full mb-6 bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
           <button id="crm-tab-member" onclick="switchCrmSubTab('member')" class="crm-sub-tab crm-sub-tab-active">會員流量</button>
           <button id="crm-tab-sales" onclick="switchCrmSubTab('sales')" class="crm-sub-tab crm-sub-tab-inactive">店家申請</button>
       </div>
-
       <div id="crm-member-section" class="space-y-4">
           <div class="relative flex flex-col mb-4">
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
@@ -148,68 +115,44 @@
           <div id="admin-crm-list-container" class="flex flex-col bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden"></div>
           <div id="crm-load-more-box" class="hidden py-6 text-center"><button onclick="loadMoreCrm()" class="btn-secondary !w-auto px-8 mx-auto">顯示更多</button></div>
       </div>
-
-      <div id="crm-sales-section" class="hidden space-y-4 animate-in fade-in">
+      <div id="crm-sales-section" class="hidden space-y-4">
           <div id="admin-sales-list-container" class="flex flex-col gap-4 pb-20"></div>
       </div>
     </div>
-
-    <!-- 後台：系統參數 -->
-    <div id="view-admin-settings" class="hidden animate-in fade-in pt-2 space-y-4">
-      <h2 class="text-[24px] font-extrabold text-slate-800 tracking-tight pl-1 mb-4">系統參數</h2>
-      <div class="bg-white p-5 rounded-[2rem] shadow-sm space-y-4 border border-slate-100">
-          <div class="flex flex-col"><label class="input-label">Telegram Bot Token</label><div class="flex gap-2"><input type="text" id="set-tg-token" class="custom-input flex-1"><button onclick="autoFetchTgChatId()" id="btn-fetch-tg" class="bg-slate-100 text-slate-600 px-4 rounded-xl font-bold active:scale-95 transition-all">轉換</button></div></div>
-          <div class="flex flex-col"><label class="input-label">Telegram Chat ID</label><input type="text" id="set-tg-chat" class="custom-input !bg-slate-50 text-slate-500" readonly></div>
-          <div class="flex flex-col"><label class="input-label">官方 LINE 連結</label><input type="text" id="set-line-link" class="custom-input" placeholder="https://lin.ee/..."></div>
-          <button id="btn-submit-settings" onclick="submitSettings()" class="w-full py-4 bg-[#06C755] text-white rounded-2xl font-bold text-[16px] shadow-sm active:scale-[0.98] transition-transform mt-2">儲存設定</button>
-          
-          <div class="pt-4 border-t border-slate-100 mt-4">
-            <label class="input-label text-red-500">進階維護</label>
-            <button id="btn-clean-db" onclick="cleanDatabaseCache()" class="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-[16px] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"><span class="material-symbols-outlined">delete_sweep</span> 清洗資料庫與快取</button>
-          </div>
-      </div>
-    </div>
-
   </main>
 
-  <!-- 底部選單 -->
-  <nav id="bottom-nav-user" class="hidden fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-slate-100">
-    <button onclick="switchView('user-activities')" id="nav-user-activities" class="nav-btn nav-active"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">explore</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">探索</span></button>
-    <button onclick="window.location.href='fate.html'" id="nav-user-fate" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">psychology</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
-    <button onclick="switchView('user-history')" id="nav-user-history" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">receipt_long</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">紀錄</span></button>
-    <button onclick="window.location.href='profile.html'" id="nav-user-profile" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">person</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">設定</span></button>
+  <nav id="bottom-nav-user" class="hidden fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-sm left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-slate-100">
+    <button onclick="switchView('user-activities')" id="nav-user-activities" class="nav-btn nav-active"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">explore</span></div><span class="text-[10px] font-bold mt-0.5">探索</span></button>
+    <button onclick="window.location.href='fate.html'" id="nav-user-fate" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">psychology</span></div><span class="text-[10px] font-bold mt-0.5">配對</span></button>
+    <button onclick="switchView('user-history')" id="nav-user-history" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">receipt_long</span></div><span class="text-[10px] font-bold mt-0.5">紀錄</span></button>
+    <button onclick="window.location.href='profile.html'" id="nav-user-profile" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">person</span></div><span class="text-[10px] font-bold mt-0.5">設定</span></button>
   </nav>
 
-  <nav id="bottom-nav-admin" class="hidden fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)] left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-slate-100">
-    <button onclick="switchView('admin-activities')" id="nav-admin-activities" class="nav-btn nav-active"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">fact_check</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">核銷</span></button>
-    <button onclick="window.location.href='active.html'" id="nav-admin-create" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">add_circle</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">建立</span></button>
-    <button onclick="switchView('admin-crm')" id="nav-admin-crm" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">groups</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">CRM</span></button>
-    <button onclick="window.location.href='fate.html'" id="nav-admin-fate" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">psychology</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">配對</span></button>
-    <button onclick="window.location.href='card.html'" id="nav-admin-cards" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">recent_patient</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">名片</span></button>
-    <button onclick="switchView('admin-settings')" id="nav-admin-settings" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">settings</span></div><span class="text-[10px] font-bold tracking-wide mt-0.5">參數</span></button>
+  <nav id="bottom-nav-admin" class="hidden fixed bottom-0 w-full max-w-md bg-white/95 backdrop-blur-xl flex justify-evenly items-center px-1 py-2 z-40 pb-safe shadow-sm left-1/2 -translate-x-1/2 h-[76px] rounded-t-3xl border-t border-slate-100">
+    <button onclick="switchView('admin-activities')" id="nav-admin-activities" class="nav-btn nav-active"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">fact_check</span></div><span class="text-[10px] font-bold mt-0.5">核銷</span></button>
+    <button onclick="window.location.href='active.html'" id="nav-admin-create" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">add_circle</span></div><span class="text-[10px] font-bold mt-0.5">建立</span></button>
+    <button onclick="switchView('admin-crm')" id="nav-admin-crm" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">groups</span></div><span class="text-[10px] font-bold mt-0.5">CRM</span></button>
+    <button onclick="window.location.href='fate.html'" id="nav-admin-fate" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">psychology</span></div><span class="text-[10px] font-bold mt-0.5">配對</span></button>
+    <button onclick="window.location.href='card.html'" id="nav-admin-cards" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">recent_patient</span></div><span class="text-[10px] font-bold mt-0.5">名片</span></button>
+    <button onclick="switchView('admin-settings')" id="nav-admin-settings" class="nav-btn"><div class="icon-box"><span class="material-symbols-outlined text-[24px]">settings</span></div><span class="text-[10px] font-bold mt-0.5">參數</span></button>
   </nav>
 </div>
 
-<!-- 底部抽屜 Modal：活動名單 -->
+<!-- 核銷名單 Modal -->
 <div id="admin-registrants-modal" class="hidden fixed inset-0 z-[1050] bg-black/40 backdrop-blur-sm flex flex-col justify-end animate-in fade-in w-full max-w-md mx-auto left-0 right-0">
   <div class="bg-slate-50 w-full rounded-t-[2rem] overflow-hidden flex flex-col h-[90vh] bottom-sheet-up">
       <div class="bg-white px-5 pt-5 pb-4 flex justify-between items-center shrink-0 shadow-sm rounded-t-[2rem] z-20">
         <div class="flex items-center gap-3">
-          <button onclick="closeAdminRegistrants()" class="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 active:scale-90 transition-transform"><span class="material-symbols-outlined text-[20px]">arrow_drop_down</span></button>
+          <button onclick="closeAdminRegistrants()" class="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 active:scale-90"><span class="material-symbols-outlined text-[20px]">arrow_drop_down</span></button>
           <h3 id="admin-reg-title" class="text-[18px] font-extrabold text-slate-800 truncate max-w-[180px]">活動名單</h3>
         </div>
       </div>
-      <div class="bg-white px-5 py-4 shrink-0 flex gap-3 border-b border-slate-100 z-10">
-         <div class="relative flex-1 flex flex-col">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
-            <input type="text" id="admin-search-reg" onkeyup="filterAdminReg()" class="custom-input !h-[44px] !pl-11 !rounded-xl !bg-slate-100" placeholder="搜尋姓名或電話...">
-         </div>
-      </div>
+      <div class="bg-white px-5 py-4 shrink-0 border-b border-slate-100 z-10"><input type="text" id="admin-search-reg" onkeyup="filterAdminReg()" class="custom-input !h-[44px]" placeholder="搜尋姓名或電話..."></div>
       <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-safe bg-slate-50" id="admin-reg-list"></div>
   </div>
 </div>
 
-<div id="toast" class="hidden fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all z-[10000] font-bold flex items-center gap-2 w-max max-w-[90vw] opacity-0 pointer-events-none border border-slate-700 text-white bg-slate-800"></div>
+<div id="toast" class="hidden fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all z-[10000] font-bold flex items-center gap-2 border border-slate-700 text-white bg-slate-800"></div>
 
 <script>
   const LIFF_ID = "2008924519-RslRiLoO"; 
@@ -217,11 +160,10 @@
   const ADMIN_IDS = ["Uf729764dbb5b652a5a90a467320bea29", "U58eb5c1a747450140ce1335af709ae55", "U8932b891ad24da512afb9c1a6f41567b"]; 
 
   let userProfile = null, isAdmin = false, isViewModeAdmin = false, isRegistered = false, registeredInfo = null;
-  let globalPublicActivities = [], currentActivities = [], currentRegistrants = [], activeActivityName = '';
+  let currentActivities = [], currentRegistrants = [], activeActivityName = '', allSalesData = [], currentCrmSubTab = 'member';
   let globalCrmData = [], filteredCrmData = [], crmPageLimit = 10, currentCrmViewCount = 10, isProcessing = false;
-  let allSalesData = [], currentCrmSubTab = 'member';
 
-  async function fetchAPI(action, payload = {}, useCache = false) {
+  async function fetchAPI(action, payload = {}) {
     try {
       const response = await fetch(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, payload }) });
       const result = await response.json();
@@ -236,25 +178,14 @@
       if (!liff.isLoggedIn()) { liff.login(); return; }
       userProfile = await liff.getProfile();
       isAdmin = ADMIN_IDS.includes(userProfile.userId);
-      
-      const initData = await fetchAPI('initApp', { userId: userProfile.userId, reqContacts: true, reqActivities: true }, true);
-      const res = initData.user || { isRegistered: false };
-      isRegistered = res.isRegistered; registeredInfo = res.info; globalCardContacts = initData.contacts || [];
-      if (isAdmin) currentActivities = initData.activities || []; else globalPublicActivities = initData.activities || [];
-      
+      const initData = await fetchAPI('initApp', { userId: userProfile.userId, reqContacts: true, reqActivities: true });
+      isRegistered = initData.user.isRegistered; registeredInfo = initData.user.info;
+      if (isAdmin) currentActivities = initData.activities;
       if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = userProfile.pictureUrl || '';
       document.getElementById('view-loading').classList.add('hidden');
-      
-      if (isAdmin) {
-        isViewModeAdmin = true; document.getElementById('header-admin-badge').classList.remove('hidden'); document.getElementById('role-switch-btn').classList.remove('hidden');
-        switchView('admin-activities');
-      } else if (isRegistered) {
-        if (registeredInfo['角色'] === 'sales' && registeredInfo['審核狀態'] === '審核中') window.location.replace('register.html');
-        else switchView('user-activities');
-      } else { window.location.replace('register.html'); }
-    } catch (err) {
-      document.getElementById('view-loading').innerHTML = `<div class="bg-red-50 p-6 mx-4 rounded-2xl text-red-600 font-bold">${err.message}</div>`;
-    }
+      if (isAdmin) { isViewModeAdmin = true; document.getElementById('header-admin-badge').classList.remove('hidden'); document.getElementById('role-switch-btn').classList.remove('hidden'); switchView('admin-activities'); }
+      else if (isRegistered) switchView('user-activities'); else window.location.replace('register.html');
+    } catch (err) { document.getElementById('view-loading').innerHTML = `<p class='text-red-500 font-bold'>${err.message}</p>`; }
   };
 
   window.toggleRoleMode = function() {
@@ -264,23 +195,13 @@
   }
 
   window.switchView = function(view) {
-    ['view-loading', 'view-user-activities', 'view-user-history', 'view-admin-activities', 'view-admin-stats', 'view-admin-crm', 'view-admin-settings'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
+    ['view-loading', 'view-user-activities', 'view-user-history', 'view-admin-activities', 'view-admin-crm'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
     document.getElementById(`view-${view}`)?.classList.remove('hidden');
-    const nA = document.getElementById('bottom-nav-admin'); const nU = document.getElementById('bottom-nav-user');
+    const nA = document.getElementById('bottom-nav-admin'), nU = document.getElementById('bottom-nav-user');
     nA.classList.add('hidden'); nU.classList.add('hidden');
-    if (isAdmin && isViewModeAdmin && view.startsWith('admin')) {
-      nA.classList.remove('hidden');
-      ['activities', 'create', 'crm', 'fate', 'cards', 'settings'].forEach(k => { const b = document.getElementById('nav-admin-'+k); if(b) b.className = `nav-btn ${view.includes(k) ? 'nav-active' : ''}`; });
-    } else {
-      nU.classList.remove('hidden');
-      ['activities', 'history', 'profile', 'fate'].forEach(k => { const b = document.getElementById('nav-user-'+k); if(b) b.className = `nav-btn ${view.includes(k) ? 'nav-active' : ''}`; });
-    }
+    if (isViewModeAdmin) nA.classList.remove('hidden'); else nU.classList.remove('hidden');
     if (view === 'admin-activities') loadAdminActivities();
     else if (view === 'admin-crm') switchCrmSubTab(currentCrmSubTab);
-    else if (view === 'admin-stats') loadAdminStats();
-    else if (view === 'admin-settings') loadAdminSettings();
-    else if (view === 'user-activities') loadUserActivities();
-    else if (view === 'user-history') loadUserHistory();
   }
 
   window.switchCrmSubTab = function(tab) {
@@ -299,50 +220,35 @@
   async function loadAdminActivities() {
     const list = document.getElementById('admin-activity-list-container');
     list.innerHTML = '<div class="text-center py-10 animate-pulse text-slate-400 font-bold">載入中...</div>';
-    try { currentActivities = await fetchAPI('getActivityDashboard', {}, true); renderActivityList(currentActivities, 'admin'); } catch(e) { list.innerHTML = `<p class="text-center text-red-400 py-10">載入失敗</p>`; }
+    try { currentActivities = await fetchAPI('getActivityDashboard', {}); renderActivityList(currentActivities); } catch(e) { list.innerHTML = "載入失敗"; }
   }
 
-  function renderActivityList(data, mode) {
-    const list = document.getElementById(mode === 'user' ? 'user-activities-container' : 'admin-activity-list-container');
-    if (!list) return;
+  function renderActivityList(data) {
+    const list = document.getElementById('admin-activity-list-container');
     list.innerHTML = data.map(a => `
         <div class="bg-white rounded-[1.5rem] shadow-sm p-6 border border-slate-100 mb-4 animate-in fade-in">
-          <div class="flex justify-between items-start mb-5">
-            <div><span class="text-[10px] font-bold text-primary bg-primary-light px-2 py-0.5 rounded uppercase mb-2 inline-block">${a.type}</span><h3 class="font-extrabold text-[18px] text-slate-800">${a.name}</h3></div>
-            <div class="grid grid-cols-2 gap-3 bg-slate-50 rounded-xl p-3"><div class="text-center"><p class="text-[9px] text-slate-400 font-bold uppercase">簽到</p><p class="text-[15px] font-black text-primary">${a.attended}</p></div><div class="text-center border-l border-slate-200"><p class="text-[9px] text-slate-400 font-bold uppercase">取消</p><p class="text-[15px] font-black text-red-400">${a.cancelled || 0}</p></div></div>
+          <div class="flex justify-between items-start mb-6">
+            <div><span class="text-[10px] font-bold text-primary bg-primary-light px-2 py-0.5 rounded uppercase mb-1 inline-block">${a.type}</span><h3 class="font-extrabold text-[18px] text-slate-800">${a.name}</h3></div>
+            <div class="grid grid-cols-3 gap-2 bg-slate-50 rounded-xl p-3 shrink-0">
+               <div class="text-center"><p class="text-[9px] text-slate-400 font-bold">報名</p><p class="text-[15px] font-black text-slate-700">${a.total}</p></div>
+               <div class="text-center border-l border-slate-200"><p class="text-[9px] text-slate-400 font-bold">簽到</p><p class="text-[15px] font-black text-primary">${a.attended}</p></div>
+               <div class="text-center border-l border-slate-200"><p class="text-[9px] text-slate-400 font-bold">取消</p><p class="text-[15px] font-black text-red-400">${a.cancelled || 0}</p></div>
+            </div>
           </div>
           <div class="flex gap-3 pt-4 border-t border-slate-50">
             <button onclick="toggleActivityStatus('${a.name}')" class="flex-1 py-3 bg-slate-50 text-slate-600 rounded-xl font-bold text-[14px] active:scale-95 transition-all">${a.status === '上架' ? '下架' : '上架'}</button>
-            <button onclick="openAdminRegistrants('${a.name}')" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold text-[14px] active:scale-95 transition-all shadow-sm">名單核銷</button>
+            <button onclick="openAdminRegistrants('${a.name}')" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold text-[14px] active:scale-95 shadow-sm">名單核銷</button>
           </div>
         </div>`).join('');
-  }
-
-  async function loadCrmData() {
-    const list = document.getElementById('admin-crm-list-container');
-    list.innerHTML = '<div class="text-center py-10 animate-pulse text-slate-400 font-bold">讀取中...</div>';
-    try { globalCrmData = await fetchAPI('getAllCrmData', {}, true); filteredCrmData = [...globalCrmData]; currentCrmViewCount = crmPageLimit; renderCrmList(); } catch(e) { list.innerHTML = `<p class="text-center text-red-400 py-10">資料讀取失敗</p>`; }
-  }
-
-  function renderCrmList() {
-    const list = document.getElementById('admin-crm-list-container');
-    if(!list) return;
-    const displayItems = filteredCrmData.slice(0, currentCrmViewCount);
-    list.innerHTML = displayItems.map((r, i) => `
-        <div class="px-5 py-4 flex justify-between items-center border-b border-slate-50 last:border-0 active:bg-slate-50 transition-colors">
-            <div class="flex items-center gap-4">
-                <span class="text-[12px] text-slate-300 font-bold w-4">${i + 1}</span>
-                <div class="flex flex-col"><span class="text-[16px] text-slate-800 font-bold">${r.name}</span><span class="text-[10px] text-slate-400 uppercase tracking-tight font-bold">Member</span></div>
-            </div>
-            <div class="text-right"><span class="text-[16px] font-black text-primary">${r.attended} <span class="text-[10px] font-bold text-slate-400 ml-0.5">次出席</span></span></div>
-        </div>`).join('');
-    document.getElementById('crm-load-more-box')?.classList.toggle('hidden', filteredCrmData.length <= currentCrmViewCount);
   }
 
   async function loadSalesList() {
       const list = document.getElementById('admin-sales-list-container');
-      list.innerHTML = '<div class="text-center py-10 animate-pulse text-slate-400 font-bold">載入申請中...</div>';
-      try { allSalesData = await fetchAPI('getSalesList', {}); renderSalesList(); } catch(e) { list.innerHTML = `<p class="text-center text-red-400 py-10 font-bold">讀取失敗</p>`; }
+      list.innerHTML = '<div class="text-center py-10 animate-pulse text-slate-400 font-bold">同步申請名單中...</div>';
+      try { 
+        allSalesData = await fetchAPI('getSalesList', {}); 
+        renderSalesList(); 
+      } catch(e) { list.innerHTML = `<div class="bg-red-50 p-6 text-center text-red-500 rounded-2xl font-bold">資料讀取失敗</div>`; }
   }
 
   function renderSalesList() {
@@ -350,24 +256,23 @@
       if(allSalesData.length === 0) { container.innerHTML = '<div class="text-center py-16 text-slate-400 font-bold">目前無經銷商申請</div>'; return; }
       container.innerHTML = allSalesData.map(s => {
           const isPending = s.status === '審核中';
-          const inviteUrl = `https://liff.line.me/${LIFF_ID}/?referrer=${s.userId}`;
           return `
-          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 animate-in fade-in">
-              <div class="flex justify-between items-start mb-4">
-                  <div><h3 class="text-[17px] font-black text-gray-800">${s.name}</h3><p class="text-[11px] text-slate-400 mt-0.5 uppercase tracking-wider">${s.createdAt}</p></div>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded ${isPending ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600'}">${s.status}</span>
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 animate-in fade-in">
+              <div class="flex justify-between items-center mb-5">
+                  <div><h3 class="text-[18px] font-black text-gray-800">${s.name}</h3><p class="text-[11px] text-slate-400 mt-0.5">${s.createdAt}</p></div>
+                  <span class="text-[11px] font-bold px-2.5 py-1 rounded ${isPending ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600'}">${s.status}</span>
               </div>
-              <div class="space-y-1.5 mb-5">
-                  <p class="text-[13px] text-slate-500 font-medium flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-slate-300">smartphone</span> ${s.phone || '無'}</p>
-                  <p class="text-[13px] text-slate-500 font-medium flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-slate-300">key</span> 帳號：<span class="font-bold text-slate-700">${s.loginAccount || '無'}</span></p>
+              <div class="space-y-2 mb-6">
+                  <p class="text-[14px] text-slate-500 font-medium flex items-center gap-3"><span class="material-symbols-outlined text-slate-300">smartphone</span> ${s.phone || '無'}</p>
+                  <p class="text-[14px] text-slate-500 font-medium flex items-center gap-3"><span class="material-symbols-outlined text-slate-300">key</span> 帳號：<span class="font-bold text-slate-700">${s.loginAccount || '無'}</span></p>
               </div>
-              <div class="flex gap-2 pt-4 border-t border-slate-50">
+              <div class="flex flex-col gap-3">
                   ${isPending ? `
-                    <button onclick="updateSalesAuditStatus('${s.userId}', '已退回')" class="flex-1 py-3 bg-slate-50 text-slate-400 rounded-xl font-bold text-[13px]">退回</button>
-                    <button onclick="updateSalesAuditStatus('${s.userId}', '已開通')" class="flex-1 py-3 bg-primary text-white rounded-xl font-bold text-[13px] shadow-sm">准許開通</button>
+                    <button onclick="updateSalesAuditStatus('${s.userId}', '已開通')" class="w-full py-4 bg-primary text-white rounded-xl font-black text-[16px] shadow-sm active:scale-[0.98]">核准開通</button>
+                    <button onclick="updateSalesAuditStatus('${s.userId}', '已退回')" class="w-full py-3 bg-slate-50 text-slate-400 rounded-xl font-bold text-[14px]">暫不處理 (退回)</button>
                   ` : `
-                    <button onclick="updateSalesAuditStatus('${s.userId}', '已退回')" class="w-12 h-11 bg-red-50 text-red-400 rounded-xl flex items-center justify-center shrink-0"><span class="material-symbols-outlined">block</span></button>
-                    <button onclick="copySalesInviteLink('${inviteUrl}')" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold text-[13px] flex items-center justify-center gap-1.5 active:scale-95 transition-all"><span class="material-symbols-outlined text-[18px]">content_copy</span> 複製推廣網址</button>
+                    <button onclick="copySalesInviteLink('https://liff.line.me/${LIFF_ID}/?referrer=${s.userId}')" class="w-full py-4 bg-slate-800 text-white rounded-xl font-black text-[15px] flex items-center justify-center gap-2 active:scale-[0.98]"><span class="material-symbols-outlined">content_copy</span> 複製專屬推廣網址</button>
+                    <button onclick="updateSalesAuditStatus('${s.userId}', '已退回')" class="w-full py-2 text-red-400 text-[12px] font-bold">撤銷店家權限</button>
                   `}
               </div>
           </div>`;
@@ -375,59 +280,64 @@
   }
 
   window.updateSalesAuditStatus = async function(userId, newStatus) {
-      if(!confirm(`確定變更為「${newStatus}」？`)) return;
-      try { await fetchAPI('updateSalesStatus', { userId, status: newStatus }); showToast("狀態已變更"); loadSalesList(); } catch(e) { showToast("變更失敗", true); }
+      if(!confirm(`確定將此店家標記為「${newStatus}」？`)) return;
+      try { await fetchAPI('updateSalesStatus', { userId, status: newStatus }); loadSalesList(); } catch(e) { alert("操作失敗"); }
   }
 
   window.copySalesInviteLink = function(url) {
       const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select();
-      try { document.execCommand('copy'); showToast("網址已複製"); } catch(e) { alert(url); }
-      document.body.removeChild(t);
+      document.execCommand('copy'); document.body.removeChild(t); showToast("推廣網址已複製");
   }
 
   window.openAdminRegistrants = async function(name) {
       activeActivityName = name; document.getElementById('admin-reg-title').innerText = name;
-      const m = document.getElementById('admin-registrants-modal'); m.classList.remove('hidden');
-      const list = document.getElementById('admin-reg-list'); list.innerHTML = '<div class="text-center py-10 animate-pulse text-slate-400">讀取中...</div>';
+      document.getElementById('admin-registrants-modal').classList.remove('hidden');
+      const list = document.getElementById('admin-reg-list'); list.innerHTML = '<p class="text-center py-10 animate-pulse">載入中...</p>';
       try { currentRegistrants = await fetchAPI('getRegistrants', { activityName: name }); renderAdminRegList(currentRegistrants); } catch(e) { list.innerHTML = "讀取失敗"; }
   }
   window.closeAdminRegistrants = function() { document.getElementById('admin-registrants-modal').classList.add('hidden'); }
 
   function renderAdminRegList(data) {
       const list = document.getElementById('admin-reg-list');
-      if(!data.length) { list.innerHTML = '<div class="text-center py-16 text-slate-400">尚無名單</div>'; return; }
       list.innerHTML = data.map(r => `
-          <div class="bg-white p-5 rounded-[1.5rem] shadow-sm mb-3 flex justify-between items-center border border-slate-50">
-              <div><h4 class="font-bold text-[16px] text-slate-800">${r['姓名']}</h4><p class="text-[11px] text-slate-400">${r['電話'] || '無'}</p></div>
+          <div class="bg-white p-5 rounded-2xl mb-3 flex justify-between items-center shadow-sm">
+              <div><h4 class="font-bold text-slate-800">${r['姓名']}</h4><p class="text-[11px] text-slate-400">${r['電話'] || '無'}</p></div>
               <button onclick="toggleCheckIn(this, ${r.rowId}, ${r.checkedIn})" class="px-5 py-2 rounded-xl font-bold text-[13px] ${r.checkedIn ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}">${r.checkedIn ? '已簽到' : '簽到'}</button>
           </div>`).join('');
   }
 
   async function toggleCheckIn(btn, rowId, status) {
-      try { await fetchAPI('toggleStatus', { activityName: activeActivityName, rowId, currentStatus: status }); openAdminRegistrants(activeActivityName); } catch(e) { showToast("簽到失敗", true); }
+      try { await fetchAPI('toggleStatus', { activityName: activeActivityName, rowId, currentStatus: status }); openAdminRegistrants(activeActivityName); } catch(e) { }
   }
 
   async function toggleActivityStatus(name) {
-      try { await fetchAPI('toggleActivityStatus', { activityName: name }); loadAdminActivities(); showToast("狀態已更新"); } catch(e) { showToast("操作失敗", true); }
+      try { await fetchAPI('toggleActivityStatus', { activityName: name }); loadAdminActivities(); } catch(e) { }
   }
 
-  // --- 補全缺失的輔助函式 ---
-  function showToast(msg, isError) {
+  async function loadCrmData() {
+    const list = document.getElementById('admin-crm-list-container');
+    list.innerHTML = '<div class="text-center py-10 animate-pulse text-slate-400 font-bold">讀取會員清單...</div>';
+    try { globalCrmData = await fetchAPI('getAllCrmData', {}); filteredCrmData = [...globalCrmData]; currentCrmViewCount = crmPageLimit; renderCrmList(); } catch(e) { list.innerHTML = "載入失敗"; }
+  }
+
+  function renderCrmList() {
+    const list = document.getElementById('admin-crm-list-container');
+    const displayItems = filteredCrmData.slice(0, currentCrmViewCount);
+    list.innerHTML = displayItems.map((r, i) => `
+        <div class="px-5 py-4 flex justify-between items-center border-b border-slate-50 last:border-0 active:bg-slate-50 transition-colors">
+            <div class="flex items-center gap-4"><span class="text-[12px] text-slate-300 font-bold w-4">${i + 1}</span><div class="flex flex-col"><span class="text-[16px] text-slate-800 font-bold">${r.name}</span><span class="text-[10px] text-slate-400 font-bold uppercase">Member</span></div></div>
+            <div class="text-right"><span class="text-[16px] font-black text-primary">${r.attended} <span class="text-[10px] font-bold text-slate-400 ml-0.5">次</span></span></div>
+        </div>`).join('');
+    document.getElementById('crm-load-more-box')?.classList.toggle('hidden', filteredCrmData.length <= currentCrmViewCount);
+  }
+
+  function showToast(msg) {
       const t = document.getElementById('toast');
-      t.innerHTML = `<span class="material-symbols-outlined icon-filled">${isError?'error':'check_circle'}</span> ${msg}`;
-      t.className = `fixed top-14 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-[14px] shadow-lg transition-all font-bold flex items-center gap-2 text-white ${isError?'bg-red-500':'bg-slate-800'} opacity-100 z-[10000]`;
+      t.innerHTML = `<span class="material-symbols-outlined">check_circle</span> ${msg}`;
+      t.className = "fixed top-14 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-[14px] shadow-lg transition-all font-bold text-white bg-slate-800 opacity-100 z-[10000]";
       t.classList.remove('hidden');
       setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.classList.add('hidden'), 300); }, 3000);
   }
-  function setButtonLoading(id, isLoading, text) { const b = document.getElementById(id); if(b) b.disabled = isLoading; }
-  async function loadAdminStats() { document.getElementById('admin-stats-container').innerHTML = '<div class="text-center py-20 text-slate-400 font-bold">營運報表開發中</div>'; }
-  async function loadAdminSettings() { const s = await fetchAPI('getSettings'); document.getElementById('set-tg-token').value = s.TG_BOT_TOKEN || ''; document.getElementById('set-tg-chat').value = s.TG_CHAT_ID || ''; document.getElementById('set-line-link').value = s.LINE_LINK || ''; }
-  async function submitSettings() { await fetchAPI('saveSettings', { TG_BOT_TOKEN: document.getElementById('set-tg-token').value, TG_CHAT_ID: document.getElementById('set-tg-chat').value, LINE_LINK: document.getElementById('set-line-link').value }); showToast("已儲存"); }
-  async function cleanDatabaseCache() { if(confirm("確定清洗？")) { await fetchAPI('cleanDatabase'); sessionStorage.clear(); window.location.reload(); } }
-  async function autoFetchTgChatId() { const t = document.getElementById('set-tg-token').value; if(t) { const cid = await fetchAPI('getTgChatId', {token:t}); document.getElementById('set-tg-chat').value = cid; } }
-  function filterAdminReg() { const term = document.getElementById('admin-search-reg').value.toLowerCase(); renderAdminRegList(currentRegistrants.filter(r => (r['姓名']||'').toLowerCase().includes(term) || (r['電話']||'').includes(term))); }
-  function filterCrmList() { const term = document.getElementById('crm-search-input').value.toLowerCase(); filteredCrmData = globalCrmData.filter(u => u.name.toLowerCase().includes(term)); currentCrmViewCount = crmPageLimit; renderCrmList(); }
-  function loadMoreCrm() { currentCrmViewCount += crmPageLimit; renderCrmList(); }
 </script>
 </body>
 </html>
