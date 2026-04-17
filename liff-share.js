@@ -1,6 +1,6 @@
 /**
  * liff-share.js
- * Version: v2.0.0 (V2 升級版：統一共用發送模組，支援全域 Toast 與防呆重登機制)
+ * Version: v20260417_salesmemager (業務高手專案：統一共用發送模組，無刪減完整輸出)
  * 包含大檔支援、自動 Token 換發與防呆重登機制
  */
 window.triggerFlexSharing = async function(flexContents, altText, successMsg = '🚀 數位名片已成功轉發！') {
