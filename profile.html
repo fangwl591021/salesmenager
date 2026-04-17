@@ -160,7 +160,7 @@
     const timeoutId = setTimeout(() => controller.abort(), 15000);
     const response = await fetch(WORKER_URL, {
       method: 'POST', 
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, payload }),
       signal: controller.signal
     });
