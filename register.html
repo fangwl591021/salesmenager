@@ -98,7 +98,7 @@
             <label class="input-label">註冊身分</label>
             <div class="grid grid-cols-2 gap-3">
               <label class="relative flex flex-col items-center justify-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-all [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary-light/50 group">
-                <input type="radio" name="reg-role" value="user" class="peer sr-only" checked onchange="toggleSalesInput()">
+                <input type="radio" name="reg-role" value="member" class="peer sr-only" checked onchange="toggleSalesInput()">
                 <i data-lucide="user" class="w-6 h-6 text-gray-400 group-[&:has(:checked)]:text-primary mb-2 transition-colors"></i>
                 <span class="text-[14px] font-bold text-gray-600 group-[&:has(:checked)]:text-primary transition-colors">一般會員</span>
               </label>
@@ -144,6 +144,7 @@
   
   let userProfile = null;
   let referrerUid = '';
+  let claimCardId = ''; // ⭐ 確保名片邀請認領不中斷
   let isProcessing = false;
 
   lucide.createIcons();
@@ -164,7 +165,7 @@
     const timeoutId = setTimeout(() => controller.abort(), 15000);
     const response = await fetch(WORKER_URL, {
       method: 'POST', 
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, payload }),
       signal: controller.signal
     });
@@ -181,6 +182,7 @@
       
       const params = new URLSearchParams(window.location.search);
       referrerUid = params.get('referrer') || '';
+      claimCardId = params.get('claimCardId') || '';
 
       if (!liff.isLoggedIn()) { 
         liff.login({ redirectUri: window.location.href }); 
@@ -190,6 +192,7 @@
       userProfile = await liff.getProfile();
       document.getElementById('user-avatar').src = userProfile.pictureUrl || '';
       document.getElementById('user-display-name').innerText = userProfile.displayName;
+      document.getElementById('reg-name').value = userProfile.displayName;
 
       // 檢查是否已註冊
       const userRes = await fetchAPI('checkUser', { userId: userProfile.userId });
@@ -201,6 +204,24 @@
              window.location.replace('index.html');
          }
          return;
+      }
+
+      // 預填名片資料 (如果是認領名片)
+      if (claimCardId) {
+         try {
+            const cardData = await fetchAPI('getCardById', { rowId: claimCardId });
+            if (cardData) {
+                document.getElementById('reg-name').value = cardData['姓名'] || userProfile.displayName;
+                if (cardData['手機號碼']) { 
+                    let phoneStr = String(cardData['手機號碼']).replace(/[^\d]/g, ''); 
+                    if (phoneStr.startsWith('886')) phoneStr = '0' + phoneStr.substring(3); 
+                    document.getElementById('reg-phone').value = phoneStr; 
+                }
+                if (cardData['公司名稱'] || cardData['服務項目/品牌標語']) { 
+                    document.getElementById('reg-industry').value = cardData['公司名稱'] || cardData['服務項目/品牌標語'] || ''; 
+                }
+            }
+         } catch(e) {}
       }
 
       document.getElementById('view-loading').classList.add('hidden');
@@ -257,6 +278,18 @@
       };
 
       const res = await fetchAPI('registerUser', payload);
+      
+      // ⭐ 無縫融入：自動繼承名片認領邏輯
+      if (claimCardId) {
+          try {
+              const cardData = await fetchAPI('getCardById', { rowId: claimCardId });
+              if (cardData) {
+                  const updatePayload = { rowId: claimCardId, 'LINE ID': userProfile.userId, userId: userProfile.userId, Name: name, Mobile: phone, CompanyName: industry };
+                  try { const newTags = await fetchAPI('calculateFateTags', { Name: name, Mobile: phone }); Object.assign(updatePayload, newTags); } catch(e) {}
+                  await fetchAPI('updateCard', updatePayload);
+              }
+          } catch(e) { console.warn('名片認領同步失敗', e); }
+      }
       
       if (res.role === 'sales') {
          document.getElementById('view-form').classList.add('hidden');
